@@ -7,13 +7,22 @@
 </head>
 <body class="theme-jared">
 
+    <!-- FRASE MOTIVACIONAL (Esquina Superior Izquierda) -->
+    <div id="quote-box" style="position: absolute; top: 15px; left: 20px; max-width: 300px; font-size: 0.95rem; font-style: italic; color: #fff; text-align: left; opacity: 0.9; text-shadow: 2px 2px 4px #000; font-family: 'Poppins', sans-serif; z-index: 1000; line-height: 1.3;"></div>
+
     <button onclick="location.href='index.html'" class="btn-volver">🚪 VOLVER AL MENÚ</button>
     
     <h1>★ LUIS JARED ★</h1>
     <h2>ASESOR DE SERVICIO</h2>
 
+    <div style="text-align: center; margin-bottom: 20px;">
+        <button id="btnSinCita" style="background:#D4AF37; color:#000; font-family:'Poppins', sans-serif; font-size:1.2rem; font-weight:bold; border:none; padding:10px 20px; cursor:pointer; border-radius:10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.2s;">+ AGREGAR SIN CITA</button>
+    </div>
+
+    <!-- Animación KO / GOOOL -->
     <div class="ko-splash" id="ko-anim">¡GOLAZO!</div>
 
+    <!-- GIF de Retardo -->
     <div id="gifOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:9999; align-items:center; justify-content:center;">
         <img id="tardyGif" src="" style="max-width: 80%; max-height: 80%; border: 5px solid red; border-radius: 15px; box-shadow: 0 0 30px red;">
     </div>
@@ -31,6 +40,7 @@
         </table>
     </div>
 
+    <!-- MODAL CONFIRMACIÓN ENTREGAR UNIDAD -->
     <div id="modalEntregar" class="modal-overlay">
         <div class="card-modal" style="border-color:#75AADB;">
             <h3 style="color:#75AADB; margin-top:0;">✔️ Confirmación de Entrega</h3>
@@ -56,6 +66,38 @@
         
         let folioAEntregar = null;
 
+        // INYECCIÓN DE FRASES MOTIVACIONALES
+        const frasesMotivacionales = [
+            "\"Hay un solo jefe: el cliente. Y puede despedir a todos en la empresa, simplemente gastando su dinero en otra parte.\" – Sam Walton",
+            "\"Tus clientes más insatisfechos son tu mayor fuente de aprendizaje.\" – Bill Gates",
+            "\"Vemos a nuestros clientes como los invitados de una fiesta y nosotros somos los anfitriones.\" – Jeff Bezos",
+            "\"Acércate más que nunca a tus clientes. Tan cerca que les digas lo que necesitan mucho antes de que ellos mismos lo sepan.\" – Steve Jobs",
+            "\"El propósito de un negocio es crear y mantener un cliente.\" – Peter Drucker",
+            "\"No es el empleador quien paga los salarios. Es el cliente quien paga los salarios.\" – Henry Ford",
+            "\"Si no cuidas a tus clientes, tu competencia lo hará.\" – Bob Hooey",
+            "\"El cliente siempre tiene la razón.\" – Harry Gordon Selfridge",
+            "\"Un cliente no es alguien con quien discutir o competir.\" – Paul J. Meyer",
+            "\"El cliente es la persona más importante en nuestras instalaciones.\" – L.L. Bean",
+            "\"Tu cliente más importante es el que tienes frente a ti.\" – Tom Hopkins",
+            "\"No inventes para ti mismo, inventa para tus clientes.\" – Larry Page",
+            "\"Un cliente bien atendido podría ser más valioso que 10.000 dólares de publicidad.\" – Jim Rohn",
+            "\"La gente olvidará lo que dijiste, olvidará lo que hiciste, pero nunca olvidará cómo la hiciste sentir.\" – Maya Angelou",
+            "\"Haz lo que haces tan bien que querrán volver a verlo y traer a sus amigos.\" – Walt Disney",
+            "\"La percepción del cliente es tu realidad.\" – Kate Zabriskie",
+            "\"Los clientes no recuerdan el precio, recuerdan la experiencia.\" – Harley-Davidson",
+            "\"Sorprender a tu cliente es la forma más rápida de fidelizarlo.\" – Tom Peters",
+            "\"Una queja de un cliente es un regalo y una oportunidad para mejorar.\" – Janelle Barlow",
+            "\"Invita a tus clientes a ser parte de la solución.\" – Steve Jobs",
+            "\"Resuelve el problema de inmediato y con una sonrisa.\" – Ray Kroc",
+            "\"Si el cliente está contento, todo lo demás encaja.\" – Guy Kawasaki",
+            "\"Haz un cliente, no una venta.\" – Katherine Barchetti",
+            "\"El buen servicio no cuesta, paga.\" – Denis Waitley",
+            "\"La regla de oro de cada hombre de negocios: ponte en el lugar de tu cliente.\" – Orison Swett Marden",
+            "\"Tus empleados son el primer cliente que debes convencer.\" – Richard Branson"
+        ];
+        document.getElementById('quote-box').innerText = frasesMotivacionales[Math.floor(Math.random() * frasesMotivacionales.length)];
+
+        // LÓGICA DE TABLAS (JARED)
         onValue(ref(db, 'citas_diarias'), (snapshot) => {
             const tbody = document.getElementById('tbody-jared');
             tbody.innerHTML = '';
@@ -63,35 +105,27 @@
             
             let misCitas = Object.values(datos).filter(c => c.Asesor.includes('JARED') && !c.oculto && c.asistio !== 'No');
             
-            // 1. Obtener la fecha más reciente (la del último Excel cargado o el día actual en curso)
             let maxDateStr = "";
             if (misCitas.length > 0) {
                 let fechasSortables = misCitas.map(c => {
                     let partes = c.Fecha.split('/');
-                    // Convertimos a YYYYMMDD para comparar fácilmente
                     return { original: c.Fecha, valor: parseInt(`${partes[2]}${partes[1]}${partes[0]}`) };
                 });
                 let maxValor = Math.max(...fechasSortables.map(f => f.valor));
                 maxDateStr = fechasSortables.find(f => f.valor === maxValor).original;
             }
 
-            // 2. Ordenar las citas dando prioridad a maxDateStr, y luego por hora.
             misCitas.sort((a, b) => {
                 let isAMax = (a.Fecha === maxDateStr);
                 let isBMax = (b.Fecha === maxDateStr);
-                
                 if (isAMax && !isBMax) return -1;
                 if (!isAMax && isBMax) return 1;
-                
-                // Si ambas son del día actual o ambas son rezago, se ordenan por hora
                 return a.Hora.localeCompare(b.Hora);
             });
 
             misCitas.forEach(cita => {
                 let isRezago = (cita.Fecha !== maxDateStr);
-                // Estilo para el rezago: Gris claro
                 let rowStyle = isRezago ? 'background-color: #d3d3d3; color: #333;' : '';
-                // Si es rezago, cambiamos algunos colores de texto para que se lea bien en el gris
                 let colorHora = isRezago ? '#555' : '#D4AF37';
                 let colorFolio = isRezago ? '#555' : '#666';
                 let colorVehiculo = isRezago ? '#004aad' : '#75AADB';
@@ -132,79 +166,74 @@
         });
 
         function asignarEventos() {
-            // Actualización de placas y comentarios (Silencioso)
             document.querySelectorAll('.inp-placas').forEach(el => el.addEventListener('change', (e) => update(ref(db, `citas_diarias/${e.target.dataset.folio}`), { Placas: e.target.value.toUpperCase() })));
             document.querySelectorAll('.inp-comentario').forEach(el => el.addEventListener('change', (e) => update(ref(db, `citas_diarias/${e.target.dataset.folio}`), { comentarios: e.target.value })));
 
-            // Lógica de Asistencia (Actualiza y lanza GIF si hay retraso)
+            // Lógica de Asistencia (Lanza GIF y guarda hora de No Show)
             document.querySelectorAll('.sel-asistencia').forEach(el => {
                 el.addEventListener('change', (e) => {
-                    let val = e.target.value;
+                    let val = e.target.value; 
                     let folio = e.target.dataset.folio;
                     let horaActualStr = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+                    let actualizaciones = { asistio: val };
 
                     if (val === 'Sí') {
+                        actualizaciones.timeAsis = horaActualStr;
+                        actualizaciones.fechaHoraNoShow = ""; // Limpiar si cambia de opinión
                         let horaCita = e.target.dataset.hora;
                         if (horaCita) {
                             let [h, m] = horaCita.split(':').map(Number);
-                            let fechaCita = new Date();
-                            fechaCita.setHours(h, m, 0, 0);
-                            let ahora = new Date();
-                            
-                            // Si llegó 20 minutos tarde o más, mostramos GIF aleatorio
-                            if (((ahora - fechaCita) / 60000) >= 20) {
+                            let fechaCita = new Date(); fechaCita.setHours(h, m, 0, 0);
+                            if (((new Date() - fechaCita) / 60000) >= 20) {
                                 let randomGif = Math.floor(Math.random() * 4) + 1;
                                 document.getElementById('tardyGif').src = `./GIF/${randomGif}.gif`; 
                                 document.getElementById('gifOverlay').style.display = 'flex';
                                 setTimeout(() => { document.getElementById('gifOverlay').style.display = 'none'; }, 3000);
                             }
                         }
+                    } else if (val === 'No') {
+                        actualizaciones.fechaHoraNoShow = new Date().toLocaleString('es-MX');
+                        actualizaciones.timeAsis = "";
+                    } else {
+                        actualizaciones.fechaHoraNoShow = "";
+                        actualizaciones.timeAsis = "";
                     }
-                    update(ref(db, `citas_diarias/${folio}`), { asistio: val, timeAsis: horaActualStr });
+
+                    update(ref(db, `citas_diarias/${folio}`), actualizaciones);
                 });
             });
 
-            // Lógica de Calificación (Guarda y hace animación al instante)
             document.querySelectorAll('.sel-calif').forEach(el => {
                 el.addEventListener('change', (e) => {
-                    let val = e.target.value;
-                    let folio = e.target.dataset.folio;
-                    
+                    let val = e.target.value; let folio = e.target.dataset.folio;
                     update(ref(db, `citas_diarias/${folio}`), { calif: val });
-
                     if(val) {
                         let anim = document.getElementById('ko-anim');
                         anim.innerText = val === 'excelente' ? "¡GOOOOL!" : val === 'molesto' ? "¡DANGER!" : val === 'dudoso' ? "¡WARNING!" : "¡ÉXITO!";
                         anim.style.color = val === 'excelente' ? "#00ff00" : val === 'molesto' ? "#ff0000" : val === 'dudoso' ? "#ff9900" : "#ffcc00";
-                        
                         if(val === 'molesto') { document.body.classList.add('screen-shake'); setTimeout(()=>document.body.classList.remove('screen-shake'),500); }
-                        anim.classList.add('show-ko');
-                        setTimeout(() => { anim.classList.remove('show-ko'); }, 1500);
+                        anim.classList.add('show-ko'); setTimeout(() => { anim.classList.remove('show-ko'); }, 1500);
                     }
                 });
             });
 
-            // Botón Entregar (Llama al Modal)
             document.querySelectorAll('.btn-entregar').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     let folio = e.target.dataset.folio;
                     get(ref(db, `citas_diarias/${folio}`)).then(snap => {
                         let data = snap.val();
                         if(!data.calif) { alert("⚠️ Califica la unidad antes de entregar."); return; }
-                        folioAEntregar = folio;
-                        document.getElementById('modalEntregar').style.display = 'flex';
+                        folioAEntregar = folio; document.getElementById('modalEntregar').style.display = 'flex';
                     });
                 });
             });
         }
 
-        // Modal: Confirmar Entrega
         document.getElementById('btnConfirmEntregar').addEventListener('click', () => {
             document.getElementById('modalEntregar').style.display = 'none';
             if(folioAEntregar) {
                 get(ref(db, `citas_diarias/${folioAEntregar}`)).then(snap => {
-                    let data = snap.val(); 
-                    data.timestampEntrega = Date.now();
+                    let data = snap.val(); data.timestampEntrega = Date.now();
                     set(ref(db, `historial_completado/${folioAEntregar}_${data.timestampEntrega}`), data).then(() => {
                         update(ref(db, `citas_diarias/${folioAEntregar}`), { oculto: true });
                         folioAEntregar = null;
@@ -212,11 +241,57 @@
                 });
             }
         });
-
-        // Modal: Cancelar Entrega
         document.getElementById('btnCancelEntregar').addEventListener('click', () => {
-            document.getElementById('modalEntregar').style.display = 'none';
-            folioAEntregar = null;
+            document.getElementById('modalEntregar').style.display = 'none'; folioAEntregar = null;
+        });
+
+        // LÓGICA AGREGAR SIN CITA (JARED)
+        document.getElementById('btnSinCita').addEventListener('click', () => {
+            let rowId = 'row-sin-cita';
+            if(document.getElementById(rowId)) return;
+            let tbody = document.getElementById('tbody-jared');
+            let tr = document.createElement('tr'); tr.id = rowId;
+            tr.style.background = 'rgba(212, 175, 55, 0.3)'; 
+            
+            let hoyHora = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+            let hoyFecha = new Date().toISOString().split('T')[0];
+
+            tr.innerHTML = `
+                <td><strong style="color:#000;">LUIS JARED</strong></td>
+                <td><input type="date" id="${rowId}-fecha" value="${hoyFecha}" style="border:1px solid #000;"></td>
+                <td><input type="text" id="${rowId}-hora" placeholder="HH:MM" maxlength="5" value="${hoyHora}" oninput="let v=this.value.replace(/[^0-9]/g,''); if(v.length>2) v=v.slice(0,2)+':'+v.slice(2); this.value=v.slice(0,5);" style="border:1px solid #000; text-align:center;"></td>
+                <td><input type="text" id="${rowId}-folio" placeholder="Folio" style="width:70px; border:1px solid #000;"></td>
+                <td><input type="text" id="${rowId}-cliente" placeholder="Nombre" style="border:1px solid #000;"></td>
+                <td><input type="text" id="${rowId}-vehiculo" placeholder="Auto" style="border:1px solid #000;"></td>
+                <td><input type="text" id="${rowId}-placas" placeholder="Placas" style="width:80px; text-align:center; border:1px solid #000;"></td>
+                <td><input type="text" id="${rowId}-servicio" placeholder="Servicio" style="border:1px solid #000;"></td>
+                <td colspan="4" style="text-align:center; vertical-align:middle;">
+                    <button id="btnSave-${rowId}" style="background:#000; color:#fff; border:none; padding:8px 15px; cursor:pointer; font-family:'Poppins', sans-serif; font-size:1rem; border-radius:5px; font-weight:bold;">💾 GUARDAR</button>
+                    <button onclick="document.getElementById('${rowId}').remove()" style="background:#ff0000; color:#fff; border:none; padding:8px 15px; cursor:pointer; font-family:'Poppins', sans-serif; font-size:1rem; margin-left:5px; border-radius:5px;">❌</button>
+                </td>
+            `;
+            tbody.prepend(tr);
+
+            document.getElementById(`btnSave-${rowId}`).addEventListener('click', () => {
+                let f = document.getElementById(`${rowId}-folio`).value.trim();
+                let h = document.getElementById(`${rowId}-hora`).value.trim();
+                let timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+
+                if(!f) return alert("⚠️ El Folio es obligatorio.");
+                if(!timeRegex.test(h)) return alert("⚠️ Formato de hora inválido (HH:MM).");
+                
+                let pDate = document.getElementById(`${rowId}-fecha`).value.split('-');
+                let nCita = {
+                    Folio: f, Fecha: `${pDate[2]}/${pDate[1]}/${pDate[0]}`, Asesor: "01 ASE- LUIS JARED", Hora: h,
+                    Cliente: document.getElementById(`${rowId}-cliente`).value.toUpperCase(),
+                    Vehiculo: document.getElementById(`${rowId}-vehiculo`).value.toUpperCase(),
+                    VIN: 'S/V',
+                    Placas: document.getElementById(`${rowId}-placas`).value.toUpperCase() || 'S/P',
+                    Servicio: document.getElementById(`${rowId}-servicio`).value.toUpperCase(),
+                    asistio: "Sí", timeAsis: h, calif: "", comentarios: "", oculto: false
+                };
+                update(ref(db, `citas_diarias/${f}`), nCita).then(() => document.getElementById(rowId).remove());
+            });
         });
     </script>
 </body>

@@ -25,14 +25,14 @@
                 <p>Asesora de Servicio</p>
             </div>
             
-            <div class="profile-card card-citas" onclick="checkCitas()">
-                <div class="avatar">💖</div>
+            <div class="profile-card card-citas" onclick="abrirLogin('citas')">
+                <div class="avatar">💜</div>
                 <h2>CONTROL DE CITAS</h2>
                 <p>Administración</p>
             </div>
             
-            <div class="profile-card card-admin" onclick="checkAdmin()">
-                <div class="avatar">⚙️</div>
+            <div class="profile-card card-admin" onclick="abrirLogin('admin')">
+                <div class="avatar">☀️</div>
                 <h2>SUPER ADMIN</h2>
                 <p>Jefatura</p>
             </div>
@@ -40,17 +40,60 @@
         </div>
     </div>
 
+    <!-- MODAL DE LOGIN NEÓN (Uiverse.io by shadyeljokers) -->
+    <div id="modalLogin" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:10000; align-items:center; justify-content:center;">
+        <div class="spinner-container" id="spinnerContainer">
+            <!-- Los 50 spans se inyectan por JS -->
+            <div class="login-box-neon">
+                <h2 id="loginTitle" style="font-family:'Poppins', sans-serif;">ACCESO</h2>
+                <div class="input-box-neon">
+                    <input type="password" id="loginPin" required>
+                    <label>Contraseña</label>
+                </div>
+                <button class="btn-neon" onclick="verificarPassword()">ENTRAR</button>
+                <button class="btn-neon" style="margin-top:15px; background:#ff004f; color:#fff;" onclick="cerrarLogin()">CANCELAR</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        function checkCitas() {
-            let pin = prompt("🔐 Ingresa la contraseña de Control de Citas:");
-            if(pin === '0520') window.location.href = 'citas.html';
-            else if(pin !== null) alert("❌ Contraseña incorrecta.");
+        let perfilSeleccionado = "";
+
+        // Generar los 50 spans del efecto neón giratorio
+        const spinner = document.getElementById('spinnerContainer');
+        for(let i = 1; i <= 50; i++) {
+            let span = document.createElement('span');
+            span.style.setProperty('--i', i);
+            spinner.appendChild(span);
         }
-        function checkAdmin() {
-            let pin = prompt("🔐 Ingresa el PIN de Super Admin:");
-            if(pin === '2099') window.location.href = 'admin.html';
-            else if(pin !== null) alert("❌ PIN incorrecto.");
+
+        function abrirLogin(perfil) {
+            perfilSeleccionado = perfil;
+            document.getElementById('loginTitle').innerText = perfil === 'citas' ? 'CONTROL DE CITAS' : 'SUPER ADMIN';
+            document.getElementById('loginPin').value = '';
+            document.getElementById('modalLogin').style.display = 'flex';
+            setTimeout(() => document.getElementById('loginPin').focus(), 100);
         }
+
+        function cerrarLogin() {
+            document.getElementById('modalLogin').style.display = 'none';
+        }
+
+        function verificarPassword() {
+            let pin = document.getElementById('loginPin').value;
+            if (perfilSeleccionado === 'citas') {
+                if (pin === '0520') window.location.href = 'citas.html';
+                else alert("❌ Contraseña incorrecta.");
+            } else if (perfilSeleccionado === 'admin') {
+                if (pin === '2099') window.location.href = 'admin.html';
+                else alert("❌ PIN incorrecto.");
+            }
+        }
+
+        // Permitir usar "Enter" en el teclado
+        document.getElementById('loginPin').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') verificarPassword();
+        });
     </script>
 
 </body>
