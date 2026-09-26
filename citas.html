@@ -4,50 +4,34 @@
     <meta charset="UTF-8">
     <title>Control Citas</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <style>
-        /* CSS LOCAL PARA ZOOM Y CONTADORES */
-        :root {
-            --table-font-size: 1rem; /* Letra más pequeña por defecto */
-        }
-        .table-container td, .table-container select, .table-container input {
-            font-size: var(--table-font-size) !important;
-            transition: font-size 0.2s ease;
-        }
-        .counter-badge {
-            background: #fff; border: 2px solid #8A2BE2; color: #4b0082; padding: 5px 15px; 
-            border-radius: 10px; font-family: 'Poppins', sans-serif; font-weight: bold; 
-            font-size: 1.1rem; display: inline-flex; align-items: center; gap: 8px; 
-            box-shadow: 0 4px 10px rgba(138,43,226,0.2);
-        }
+        :root { var(--table-font-size: 1rem); }
+        .table-container td, .table-container select, .table-container input { font-size: var(--table-font-size) !important; transition: font-size 0.2s ease; }
+        .counter-badge { background: #fff; border: 2px solid #8A2BE2; color: #4b0082; padding: 5px 15px; border-radius: 10px; font-family: 'Poppins', sans-serif; font-weight: bold; font-size: 1.1rem; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(138,43,226,0.2); }
         .counter-badge span { background: #8A2BE2; color: #fff; padding: 2px 8px; border-radius: 5px; }
-        .btn-zoom {
-            background: #8A2BE2; color: white; border: none; width: 35px; height: 35px; 
-            border-radius: 50%; font-size: 1.5rem; cursor: pointer; font-weight: bold; 
-            display: flex; align-items: center; justify-content: center; 
-            box-shadow: 0 4px 10px rgba(138,43,226,0.3); transition: transform 0.2s;
-        }
+        .btn-zoom { background: #8A2BE2; color: white; border: none; width: 35px; height: 35px; border-radius: 50%; font-size: 1.5rem; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(138,43,226,0.3); transition: transform 0.2s; }
         .btn-zoom:hover { transform: scale(1.1); background: #9370DB;}
     </style>
 </head>
 <body class="theme-citas">
 
-    <!-- FRASE MOTIVACIONAL -->
     <div id="quote-box" style="position: absolute; top: 15px; left: 20px; max-width: 300px; font-size: 0.95rem; font-style: italic; color: #4b0082; text-align: left; opacity: 0.9; font-weight: bold; z-index: 1000; line-height: 1.3;"></div>
 
     <button onclick="location.href='index.html'" class="btn-volver" style="background:#8A2BE2; border:none; box-shadow:0 4px 10px rgba(138,43,226,0.4);">🚪 CERRAR SESIÓN</button>
     
     <div style="text-align: center; margin-bottom: 20px;">
         <h1 style="margin-bottom: 5px;">CONTROL DE CITAS</h1>
+        <!-- Botón para desbloquear el panel -->
+        <button id="btnUnlock" style="background:#ff007f; color:#fff; font-family:'Poppins', sans-serif; font-weight:bold; font-size:1.2rem; border:none; padding:10px 20px; cursor:pointer; border-radius:10px; box-shadow: 0 4px 10px rgba(255,0,127,0.4); margin-top:10px;">🔒 DESBLOQUEAR PANEL (SÓLO LECTURA)</button>
     </div>
 
-    <!-- DASHBOARD DE CONTADORES Y ZOOM -->
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; flex-wrap:wrap; gap:15px; background: rgba(255,255,255,0.5); padding: 15px; border-radius: 15px; border: 1px solid #D8BFD8;">
         <div style="display:flex; gap: 15px;">
             <div class="counter-badge">📅 CITAS HOY: <span id="countHoy">0</span></div>
             <div class="counter-badge">✅ ASISTENCIAS: <span id="countAsis">0</span></div>
             <div class="counter-badge">❌ NO SHOW: <span id="countNo">0</span></div>
         </div>
-        
         <div style="display:flex; align-items:center; gap: 10px; background: #fff; padding: 5px 15px; border-radius: 20px; border: 2px solid #8A2BE2;">
             <span style="color:#4b0082; font-family:'Poppins', sans-serif; font-weight:bold;">🔍 TAMAÑO TEXTO:</span>
             <button id="btnZoomOut" class="btn-zoom">-</button>
@@ -56,9 +40,25 @@
         </div>
     </div>
 
-    <div style="display: flex; gap: 15px; justify-content: center; margin-bottom: 20px;">
-        <button id="btnGarantia" style="background:#BA55D3; color:white; font-family:'Poppins', sans-serif; font-weight:bold; font-size:1.2rem; border:none; padding:10px 20px; cursor:pointer; border-radius:10px; box-shadow: 0 4px 10px rgba(186,85,211,0.4); transition: transform 0.2s;">+ AGREGAR GARANTÍA</button>
-        <button id="btnSinCita" style="background:#9370DB; color:white; font-family:'Poppins', sans-serif; font-weight:bold; font-size:1.2rem; border:none; padding:10px 20px; cursor:pointer; border-radius:10px; box-shadow: 0 4px 10px rgba(147,112,219,0.4); transition: transform 0.2s;">+ AGREGAR SIN CITA</button>
+    <!-- BOTONES DE ACCIÓN Y EXCEL (OCULTOS HASTA DESBLOQUEAR) -->
+    <div id="actionControls" style="display: none; gap: 20px; justify-content: center; align-items: center; margin-bottom: 30px;">
+        <button id="btnGarantia" style="background:#BA55D3; color:white; font-family:'Poppins', sans-serif; font-weight:bold; font-size:1.2rem; border:none; padding:15px 30px; cursor:pointer; border-radius:10px; box-shadow: 0 4px 10px rgba(186,85,211,0.4);">+ AGREGAR GARANTÍA</button>
+        <button id="btnSinCita" style="background:#9370DB; color:white; font-family:'Poppins', sans-serif; font-weight:bold; font-size:1.2rem; border:none; padding:15px 30px; cursor:pointer; border-radius:10px; box-shadow: 0 4px 10px rgba(147,112,219,0.4);">+ AGREGAR SIN CITA</button>
+        
+        <!-- BOTÓN DE CARPETA ANIMADA (UIVERSE) -->
+        <div class="container-folder" style="margin-top:0;">
+            <div class="folder">
+                <div class="front-side">
+                    <div class="tip"></div>
+                    <div class="cover"></div>
+                </div>
+                <div class="back-side cover"></div>
+            </div>
+            <label class="custom-file-upload">
+                <input type="file" id="excelFile" accept=".xls,.xlsx">
+                SUBIR EXCEL
+            </label>
+        </div>
     </div>
 
     <div class="tabs">
@@ -80,7 +80,6 @@
         </table>
     </div>
 
-    <!-- NUEVA PESTAÑA SLEEPING OVER (REZAGO) -->
     <div class="table-container" id="tab-sleeping">
         <table>
             <thead>
@@ -118,7 +117,6 @@
         });
         const db = getDatabase(app);
 
-        // --- SISTEMA DE ZOOM ---
         let currentZoom = parseFloat(localStorage.getItem('tableFontSizeCitas')) || 1.0;
         function applyZoom() {
             document.documentElement.style.setProperty('--table-font-size', currentZoom + 'rem');
@@ -126,35 +124,70 @@
         }
         applyZoom();
 
-        document.getElementById('btnZoomIn').addEventListener('click', () => {
-            if(currentZoom < 1.8) { currentZoom += 0.1; localStorage.setItem('tableFontSizeCitas', currentZoom.toFixed(1)); applyZoom(); }
-        });
-        document.getElementById('btnZoomOut').addEventListener('click', () => {
-            if(currentZoom > 0.6) { currentZoom -= 0.1; localStorage.setItem('tableFontSizeCitas', currentZoom.toFixed(1)); applyZoom(); }
-        });
+        document.getElementById('btnZoomIn').addEventListener('click', () => { if(currentZoom < 1.8) { currentZoom += 0.1; localStorage.setItem('tableFontSizeCitas', currentZoom.toFixed(1)); applyZoom(); } });
+        document.getElementById('btnZoomOut').addEventListener('click', () => { if(currentZoom > 0.6) { currentZoom -= 0.1; localStorage.setItem('tableFontSizeCitas', currentZoom.toFixed(1)); applyZoom(); } });
 
-
-        // --- FRASES MOTIVACIONALES ---
-        const frasesMotivacionales = [
-            "\"Hay un solo jefe: el cliente. Y puede despedir a todos... simplemente gastando su dinero en otra parte.\" – Sam Walton",
-            "\"Acércate más que nunca a tus clientes. Tan cerca que les digas lo que necesitan antes de que lo sepan.\" – Steve Jobs",
-            "\"El propósito de un negocio es crear y mantener un cliente.\" – Peter Drucker",
-            "\"El cliente siempre tiene la razón.\" – Harry Gordon Selfridge",
-            "\"La gente olvidará lo que dijiste e hiciste, pero nunca olvidará cómo la hiciste sentir.\" – Maya Angelou",
-            "\"Haz lo que haces tan bien que querrán volver a verlo y traer a sus amigos.\" – Walt Disney",
-            "\"Sorprender a tu cliente es la forma más rápida de fidelizarlo.\" – Tom Peters",
-            "\"Una queja de un cliente es un regalo y una oportunidad para mejorar.\" – Janelle Barlow"
-        ];
-        document.getElementById('quote-box').innerText = frasesMotivacionales[Math.floor(Math.random() * frasesMotivacionales.length)];
+        const frases = ["\"Hay un solo jefe: el cliente. Y puede despedir a todos... simplemente gastando su dinero en otra parte.\" – Sam Walton", "\"El propósito de un negocio es crear y mantener un cliente.\" – Peter Drucker"];
+        document.getElementById('quote-box').innerText = frases[Math.floor(Math.random() * frases.length)];
         
         let listaMotivos = [];
+        let isLocked = true; // ESTADO DE BLOQUEO (Lectura por defecto)
+        let lastData = {};
+
+        // Lógica para desbloquear
+        document.getElementById('btnUnlock').addEventListener('click', () => {
+            let pin = prompt("🔐 Ingresa la contraseña de Control de Citas:");
+            if(pin === '0520') {
+                isLocked = false;
+                document.getElementById('btnUnlock').style.display = 'none';
+                document.getElementById('actionControls').style.display = 'flex';
+                renderizarCitas(lastData); // Re-renderiza para habilitar inputs
+                alert("🔓 Panel Desbloqueado. Edición Habilitada.");
+            } else if(pin) {
+                alert("❌ Contraseña incorrecta.");
+            }
+        });
+
         onValue(ref(db, 'config_prepiking/motivos'), (snapshot) => {
             listaMotivos = snapshot.val() || ["Se le hizo tarde", "Confundió el horario", "Canceló la cita"];
             get(ref(db, 'citas_diarias')).then(snap => renderizarCitas(snap.val() || {}));
         });
 
         onValue(ref(db, 'citas_diarias'), (snapshot) => {
-            renderizarCitas(snapshot.val() || {});
+            lastData = snapshot.val() || {};
+            renderizarCitas(lastData);
+        });
+
+        // LECTURA DE EXCEL (CARPETA ANIMADA)
+        document.getElementById('excelFile').addEventListener('change', function(e) {
+            const file = e.target.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const data = new Uint8Array(evt.target.result);
+                const wb = XLSX.read(data, {type: 'array', cellDates: true});
+                const sheet = wb.Sheets[wb.SheetNames[0]];
+                const jsonDatos = XLSX.utils.sheet_to_json(sheet, {header: 1, defval: ""}); 
+                let nReg = {};
+                for (let i = 0; i < jsonDatos.length; i++) {
+                    if (jsonDatos[i][11] === 'INGRESADA') {
+                        let f = jsonDatos[i][0].toString().trim(); if(f.endsWith('.0')) f = f.slice(0,-2);
+                        nReg[f] = {
+                            Folio: f, Fecha: (jsonDatos[i][1] instanceof Date ? jsonDatos[i][1].toLocaleDateString('es-MX') : jsonDatos[i][1]),
+                            Hora: (jsonDatos[i][2] instanceof Date ? jsonDatos[i][2].toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : jsonDatos[i][2]),
+                            Asesor: jsonDatos[i][10]||'Sin Asesor', Cliente: jsonDatos[i][8]||'', Vehiculo: jsonDatos[i][3]||'',
+                            VIN: jsonDatos[i][7]||'', Placas: jsonDatos[i][6]||'',
+                            Servicio: (jsonDatos[i+1]?.[4]||'') + ' ' + (jsonDatos[i+1]?.[5]||''), asistio: "", calif: "", oculto: false
+                        };
+                    }
+                }
+                get(ref(db, 'citas_diarias')).then(snap => {
+                    let dbA = snap.val() || {}; let act = {};
+                    for (let f in nReg) if (!dbA[f]) act[f] = nReg[f];
+                    if(Object.keys(act).length > 0) update(ref(db, 'citas_diarias'), act).then(()=>alert("✅ Excel cargado con éxito."));
+                    else alert("⚠️ Todos los folios ya existían.");
+                });
+            };
+            reader.readAsArrayBuffer(file);
         });
 
         function renderizarCitas(datos) {
@@ -164,66 +197,45 @@
             tbodyPre.innerHTML = ''; tbodySleep.innerHTML = ''; tbodyNo.innerHTML = '';
             
             let arr = Object.values(datos).filter(c => !c.oculto);
-            
-            // Determinar la fecha MÁS RECIENTE (Hoy)
             let maxDateStr = "";
             if (arr.length > 0) {
-                let fechasSortables = arr.map(c => {
-                    let partes = c.Fecha.split('/');
-                    return { original: c.Fecha, valor: parseInt(`${partes[2]}${partes[1]}${partes[0]}`) };
-                });
-                let maxValor = Math.max(...fechasSortables.map(f => f.valor));
-                maxDateStr = fechasSortables.find(f => f.valor === maxValor).original;
+                let fSort = arr.map(c => { let p = c.Fecha.split('/'); return { o: c.Fecha, v: parseInt(`${p[2]}${p[1]}${p[0]}`) }; });
+                maxDateStr = fSort.find(f => f.v === Math.max(...fSort.map(x => x.v))).o;
             }
 
-            // CONTADORES DEL DÍA (Solo la fecha maxDateStr)
             let citasHoy = arr.filter(c => c.Fecha === maxDateStr);
             document.getElementById('countHoy').innerText = citasHoy.length;
             document.getElementById('countAsis').innerText = citasHoy.filter(c => c.asistio === 'Sí').length;
             document.getElementById('countNo').innerText = citasHoy.filter(c => c.asistio === 'No').length;
 
-            // DIVISIÓN DE ARREGLOS
             let arrPre = arr.filter(c => c.asistio !== 'No' && c.Fecha === maxDateStr);
             let arrSleeping = arr.filter(c => c.asistio !== 'No' && c.Fecha !== maxDateStr);
             let arrNoShow = arr.filter(c => c.asistio === 'No');
 
-            // Ordenamientos
             arrPre.sort((a,b) => a.Hora.localeCompare(b.Hora));
-            arrSleeping.sort((a,b) => {
-                let cmp = a.Fecha.split('/').reverse().join('').localeCompare(b.Fecha.split('/').reverse().join(''));
-                if(cmp !== 0) return cmp;
-                return a.Hora.localeCompare(b.Hora);
-            });
-            arrNoShow.sort((a,b) => {
-                let vA = parseInt(a.Fecha.split('/').reverse().join(''));
-                let vB = parseInt(b.Fecha.split('/').reverse().join(''));
-                return vB - vA; // Mayor a Menor fecha cita
-            });
+            arrSleeping.sort((a,b) => { let cmp = a.Fecha.split('/').reverse().join('').localeCompare(b.Fecha.split('/').reverse().join('')); if(cmp !== 0) return cmp; return a.Hora.localeCompare(b.Hora); });
+            arrNoShow.sort((a,b) => { return parseInt(b.Fecha.split('/').reverse().join('')) - parseInt(a.Fecha.split('/').reverse().join('')); });
 
-            // Función reutilizable para pintar filas PREPIKING / SLEEPING
+            let lockStatus = isLocked ? 'disabled' : ''; // Para Inputs y Selects
+
             const pintarFilaActiva = (cita, tbodyDestino, isRezago) => {
                 let rowStyle = isRezago ? 'background-color: #D8BFD8; color: #4b0082;' : ''; 
                 let borderStyle = isRezago ? 'border-color: #ba55d3;' : '';
                 let nombreLimpio = cita.Asesor.includes('-') ? cita.Asesor.split('-')[1].trim().split(' ').slice(0,2).join(' ') : cita.Asesor;
                 if (cita.Asesor.includes('GARANTÍA')) nombreLimpio = '🌟 GARANTÍA (' + nombreLimpio + ')';
                 
-                let tr = document.createElement('tr'); 
-                tr.style = rowStyle;
+                let tr = document.createElement('tr'); tr.style = rowStyle;
                 if(cita.Asesor.includes('GARANTÍA') && !isRezago) tr.style.background = 'rgba(186, 85, 211, 0.2)'; 
                 
                 tr.innerHTML = `
-                    <td style="color:${isRezago ? '#4b0082' : '#8A2BE2'}; font-weight:bold;">${nombreLimpio}</td>
-                    <td>${cita.Fecha}</td>
-                    <td style="color:${isRezago ? '#4b0082' : '#9370DB'}; font-weight:bold;">${cita.Hora}</td>
-                    <td style="color:#555;">${cita.Folio}</td>
-                    <td>${cita.Cliente}</td>
-                    <td>${cita.Vehiculo}</td>
-                    <td>${cita.VIN}</td>
-                    <td><input type="text" class="inp-placas" data-folio="${cita.Folio}" value="${cita.Placas}" style="width:80px; text-align:center; font-weight:bold; ${borderStyle}"></td>
+                    <td style="color:${isRezago?'#4b0082':'#8A2BE2'}; font-weight:bold;">${nombreLimpio}</td>
+                    <td>${cita.Fecha}</td><td style="color:${isRezago?'#4b0082':'#9370DB'}; font-weight:bold;">${cita.Hora}</td>
+                    <td style="color:#555;">${cita.Folio}</td><td>${cita.Cliente}</td><td>${cita.Vehiculo}</td><td>${cita.VIN}</td>
+                    <td><input type="text" class="inp-placas" data-folio="${cita.Folio}" value="${cita.Placas}" style="width:80px; text-align:center; font-weight:bold; ${borderStyle}" ${lockStatus}></td>
                     <td>${cita.Servicio}</td>
                     <td><select class="sel-asistencia" disabled style="${borderStyle}"><option>${cita.asistio||'Pendiente'}</option></select></td>
                     <td><select disabled style="${borderStyle}"><option>${cita.calif||'Sin calif'}</option></select></td>
-                    <td><input type="text" class="inp-comentario" data-folio="${cita.Folio}" value="${cita.comentarios || ''}" style="${borderStyle}"></td>
+                    <td><input type="text" class="inp-comentario" data-folio="${cita.Folio}" value="${cita.comentarios || ''}" style="${borderStyle}" ${lockStatus}></td>
                 `;
                 tbodyDestino.appendChild(tr);
             };
@@ -232,15 +244,17 @@
             arrSleeping.forEach(c => pintarFilaActiva(c, tbodySleep, true));
 
             arrNoShow.forEach(cita => {
-                let nombreLimpio = cita.Asesor.includes('-') ? cita.Asesor.split('-')[1].trim().split(' ').slice(0,2).join(' ') : cita.Asesor;
+                let nom = cita.Asesor.includes('-') ? cita.Asesor.split('-')[1].trim().split(' ').slice(0,2).join(' ') : cita.Asesor;
                 let opts = `<option value="">Selecciona...</option>` + listaMotivos.map(m => `<option value="${m}" ${cita.motivo===m?'selected':''}>${m}</option>`).join('');
+                let btnHtml = isLocked ? '' : `<br><button class="btn-deshacer" data-folio="${cita.Folio}" style="background:transparent; color:#8A2BE2; font-weight:bold; border:none; cursor:pointer;">↩ Deshacer</button>`;
+                
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td><strong>${nombreLimpio}</strong><br><button class="btn-deshacer" data-folio="${cita.Folio}" style="background:transparent; color:#8A2BE2; font-weight:bold; border:none; cursor:pointer;">↩ Deshacer</button></td>
+                    <td><strong>${nom}</strong>${btnHtml}</td>
                     <td style="font-weight:bold;">${cita.Fecha}</td><td>${cita.Folio}</td><td>${cita.Cliente}</td><td>${cita.Vehiculo}</td><td>${cita.Placas}</td>
-                    <td><select class="sel-motivo" data-folio="${cita.Folio}">${opts}</select></td>
-                    <td><select class="sel-reagendo" data-folio="${cita.Folio}"><option value="">¿Reagendó?</option><option value="Sí" ${cita.reagendo==='Sí'?'selected':''}>Sí</option><option value="No" ${cita.reagendo==='No'?'selected':''}>No</option></select></td>
-                    <td><input type="date" class="inp-fecha" data-folio="${cita.Folio}" value="${cita.fechaReagendo || ''}"></td>
+                    <td><select class="sel-motivo" data-folio="${cita.Folio}" ${lockStatus}>${opts}</select></td>
+                    <td><select class="sel-reagendo" data-folio="${cita.Folio}" ${lockStatus}><option value="">¿Reagendó?</option><option value="Sí" ${cita.reagendo==='Sí'?'selected':''}>Sí</option><option value="No" ${cita.reagendo==='No'?'selected':''}>No</option></select></td>
+                    <td><input type="date" class="inp-fecha" data-folio="${cita.Folio}" value="${cita.fechaReagendo || ''}" ${lockStatus}></td>
                     <td style="color:#ff007f; font-size:0.9rem; font-weight:bold;">${cita.fechaHoraNoShow || 'No registrado'}</td>
                 `;
                 tbodyNo.appendChild(tr);
@@ -249,6 +263,7 @@
         }
 
         function asignarEventos() {
+            if(isLocked) return; // Si está bloqueado no agregamos los eventos de cambio
             document.querySelectorAll('.btn-deshacer').forEach(el => el.addEventListener('click', (e) => update(ref(db, `citas_diarias/${e.target.dataset.folio}`), { asistio: "", timeAsis: "", fechaHoraNoShow: "" })));
             document.querySelectorAll('.inp-placas').forEach(el => el.addEventListener('change', (e) => update(ref(db, `citas_diarias/${e.target.dataset.folio}`), { Placas: e.target.value.toUpperCase() })));
             document.querySelectorAll('.inp-comentario').forEach(el => el.addEventListener('change', (e) => update(ref(db, `citas_diarias/${e.target.dataset.folio}`), { comentarios: e.target.value })));
@@ -260,28 +275,18 @@
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.tab-btn, .table-container').forEach(el => el.classList.remove('active'));
-                e.target.classList.add('active');
-                document.getElementById(`tab-${e.target.dataset.tab}`).classList.add('active');
+                e.target.classList.add('active'); document.getElementById(`tab-${e.target.dataset.tab}`).classList.add('active');
             });
         });
 
-        // SIN CITA / GARANTIA LOGICA (ENTRAN COMO PENDIENTES)
         function inyectarFilaRapida(esGarantia) {
-            let rowId = 'row-rapida';
-            if(document.getElementById(rowId)) return;
+            let rowId = 'row-rapida'; if(document.getElementById(rowId)) return;
             let tbody = document.getElementById('tbody-prepiking');
             let tr = document.createElement('tr'); tr.id = rowId;
             tr.style.background = esGarantia ? 'rgba(186, 85, 211, 0.4)' : 'rgba(147, 112, 219, 0.4)';
-            
             let pfx = esGarantia ? '[GARANTÍA] ' : '';
             tr.innerHTML = `
-                <td>
-                    <select id="${rowId}-asesor" style="font-weight:bold; border:2px solid #8A2BE2;">
-                        <option value="">-- ELIGE ASESOR --</option>
-                        <option value="${pfx}01 ASE- LUIS JARED">LUIS JARED</option>
-                        <option value="${pfx}02 ASE- EUGENIA NARCIA">EUGENIA NARCIA</option>
-                    </select>
-                </td>
+                <td><select id="${rowId}-asesor" style="font-weight:bold; border:2px solid #8A2BE2;"><option value="">-- ELIGE ASESOR --</option><option value="${pfx}01 ASE- LUIS JARED">LUIS JARED</option><option value="${pfx}02 ASE- EUGENIA NARCIA">EUGENIA NARCIA</option></select></td>
                 <td><input type="date" id="${rowId}-fecha" value="${new Date().toISOString().split('T')[0]}"></td>
                 <td><input type="text" id="${rowId}-hora" placeholder="HH:MM" maxlength="5" value="${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}" oninput="let v=this.value.replace(/[^0-9]/g,''); if(v.length>2) v=v.slice(0,2)+':'+v.slice(2); this.value=v.slice(0,5);" style="text-align:center; font-weight:bold;"></td>
                 <td><input type="text" id="${rowId}-folio" placeholder="Folio" style="width:70px;"></td>
@@ -290,36 +295,17 @@
                 <td><input type="text" id="${rowId}-vin" placeholder="VIN" style="width:90px;"></td>
                 <td><input type="text" id="${rowId}-placas" placeholder="Placas" style="width:80px; text-align:center;"></td>
                 <td><input type="text" id="${rowId}-servicio" placeholder="Servicio"></td>
-                <td colspan="3">
-                    <button id="btnSave-${rowId}" style="background:#8A2BE2; color:#fff; border:none; padding:10px; border-radius:5px; cursor:pointer; font-family:'Poppins', sans-serif; font-weight:bold;">GUARDAR</button> 
-                    <button onclick="document.getElementById('${rowId}').remove()" style="background:#333; color:#fff; border:none; padding:10px; border-radius:5px; cursor:pointer;">❌</button>
-                </td>
+                <td colspan="3"><button id="btnSave-${rowId}" style="background:#8A2BE2; color:#fff; border:none; padding:10px; border-radius:5px; cursor:pointer;">GUARDAR</button> <button onclick="document.getElementById('${rowId}').remove()" style="background:#333; color:#fff; border:none; padding:10px; border-radius:5px; cursor:pointer;">❌</button></td>
             `;
             tbody.prepend(tr);
-
             document.getElementById(`btnSave-${rowId}`).addEventListener('click', () => {
-                let f = document.getElementById(`${rowId}-folio`).value.trim();
-                let h = document.getElementById(`${rowId}-hora`).value.trim();
-                let ase = document.getElementById(`${rowId}-asesor`).value;
-                if(!ase) return alert("⚠️ Selecciona el Asesor.");
-                if(!f) return alert("⚠️ Folio obligatorio.");
-                if(!/^([01]\d|2[0-3]):([0-5]\d)$/.test(h)) return alert("⚠️ Hora inválida (HH:MM).");
-                
+                let f = document.getElementById(`${rowId}-folio`).value.trim(); let h = document.getElementById(`${rowId}-hora`).value.trim(); let ase = document.getElementById(`${rowId}-asesor`).value;
+                if(!ase) return alert("⚠️ Selecciona el Asesor."); if(!f) return alert("⚠️ Folio obligatorio.");
                 let fp = document.getElementById(`${rowId}-fecha`).value.split('-');
-                let nCita = {
-                    Folio: f, Fecha: `${fp[2]}/${fp[1]}/${fp[0]}`, Asesor: ase, Hora: h,
-                    Cliente: document.getElementById(`${rowId}-cliente`).value.toUpperCase(),
-                    Vehiculo: document.getElementById(`${rowId}-vehiculo`).value.toUpperCase(),
-                    VIN: document.getElementById(`${rowId}-vin`).value.toUpperCase() || 'S/V',
-                    Placas: document.getElementById(`${rowId}-placas`).value.toUpperCase() || 'S/P',
-                    Servicio: document.getElementById(`${rowId}-servicio`).value.toUpperCase(),
-                    // AHORA AMBAS ENTRAN COMO PENDIENTES, NO "Sí"
-                    asistio: "", timeAsis: "", calif: "", comentarios: "", oculto: false
-                };
+                let nCita = { Folio: f, Fecha: `${fp[2]}/${fp[1]}/${fp[0]}`, Asesor: ase, Hora: h, Cliente: document.getElementById(`${rowId}-cliente`).value.toUpperCase(), Vehiculo: document.getElementById(`${rowId}-vehiculo`).value.toUpperCase(), VIN: document.getElementById(`${rowId}-vin`).value.toUpperCase() || 'S/V', Placas: document.getElementById(`${rowId}-placas`).value.toUpperCase() || 'S/P', Servicio: document.getElementById(`${rowId}-servicio`).value.toUpperCase(), asistio: "", timeAsis: "", calif: "", comentarios: "", oculto: false };
                 update(ref(db, `citas_diarias/${f}`), nCita).then(() => document.getElementById(rowId).remove());
             });
         }
-
         document.getElementById('btnSinCita').addEventListener('click', () => inyectarFilaRapida(false));
         document.getElementById('btnGarantia').addEventListener('click', () => inyectarFilaRapida(true));
     </script>
