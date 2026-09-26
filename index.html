@@ -25,7 +25,8 @@
                 <p>Asesora de Servicio</p>
             </div>
             
-            <div class="profile-card card-citas" onclick="abrirLogin('citas')">
+            <!-- Citas ahora entra directo (Modo lectura por defecto) -->
+            <div class="profile-card card-citas" onclick="location.href='citas.html'">
                 <div class="avatar">💜</div>
                 <h2>CONTROL DE CITAS</h2>
                 <p>Administración</p>
@@ -40,10 +41,9 @@
         </div>
     </div>
 
-    <!-- MODAL DE LOGIN NEÓN (Uiverse.io by shadyeljokers) -->
+    <!-- MODAL DE LOGIN NEÓN PARA ADMIN -->
     <div id="modalLogin" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:10000; align-items:center; justify-content:center;">
         <div class="spinner-container" id="spinnerContainer">
-            <!-- Los 50 spans se inyectan por JS -->
             <div class="login-box-neon">
                 <h2 id="loginTitle" style="font-family:'Poppins', sans-serif;">ACCESO</h2>
                 <div class="input-box-neon">
@@ -57,9 +57,6 @@
     </div>
 
     <script>
-        let perfilSeleccionado = "";
-
-        // Generar los 50 spans del efecto neón giratorio
         const spinner = document.getElementById('spinnerContainer');
         for(let i = 1; i <= 50; i++) {
             let span = document.createElement('span');
@@ -68,33 +65,22 @@
         }
 
         function abrirLogin(perfil) {
-            perfilSeleccionado = perfil;
-            document.getElementById('loginTitle').innerText = perfil === 'citas' ? 'CONTROL DE CITAS' : 'SUPER ADMIN';
+            document.getElementById('loginTitle').innerText = 'SUPER ADMIN';
             document.getElementById('loginPin').value = '';
             document.getElementById('modalLogin').style.display = 'flex';
             setTimeout(() => document.getElementById('loginPin').focus(), 100);
         }
 
-        function cerrarLogin() {
-            document.getElementById('modalLogin').style.display = 'none';
-        }
+        function cerrarLogin() { document.getElementById('modalLogin').style.display = 'none'; }
 
         function verificarPassword() {
-            let pin = document.getElementById('loginPin').value;
-            if (perfilSeleccionado === 'citas') {
-                if (pin === '0520') window.location.href = 'citas.html';
-                else alert("❌ Contraseña incorrecta.");
-            } else if (perfilSeleccionado === 'admin') {
-                if (pin === '2099') window.location.href = 'admin.html';
-                else alert("❌ PIN incorrecto.");
-            }
+            if (document.getElementById('loginPin').value === '2099') window.location.href = 'admin.html';
+            else alert("❌ PIN incorrecto.");
         }
 
-        // Permitir usar "Enter" en el teclado
         document.getElementById('loginPin').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') verificarPassword();
         });
     </script>
-
 </body>
 </html>
