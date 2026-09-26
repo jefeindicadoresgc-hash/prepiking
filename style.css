@@ -5,13 +5,17 @@ body { margin: 0; padding: 20px; box-sizing: border-box; min-height: 100vh; tran
 .btn-volver { position: fixed; top: 15px; right: 20px; background: #000; color: #fff; border: 2px solid #fff; padding: 10px 20px; border-radius: 30px; font-family: 'Poppins', sans-serif; font-weight: bold; cursor: pointer; z-index: 1000; text-decoration: none; }
 .btn-volver:hover { transform: scale(1.05); }
 
-/* TABLAS BASE */
+/* TABLAS BASE (AJUSTE DE TAMAÑO PARA APROVECHAR ESPACIO) */
 .table-container { overflow-x: auto; display: none; }
 .table-container.active { display: block; }
-table { width: 100%; border-collapse: collapse; box-shadow: 0 0 20px rgba(0,0,0,0.5); border-radius: 10px; overflow: hidden; }
-td { padding: 10px; font-size: 1.2rem; vertical-align: middle; }
-th { padding: 12px; text-align: left; font-size: 1.5rem; letter-spacing: 1px; }
-select, input[type="date"], input[type="text"] { width: 100%; padding: 5px; font-family: 'Teko', sans-serif; font-size: 1.1rem; box-sizing: border-box; }
+table { width: 100%; border-collapse: collapse; box-shadow: 0 0 20px rgba(0,0,0,0.5); border-radius: 10px; overflow: hidden; table-layout: auto; }
+td { padding: 6px 5px; font-size: 1.05rem; vertical-align: middle; word-wrap: break-word; } /* Padding y fuente reducidos */
+th { padding: 8px 5px; text-align: left; font-size: 1.1rem; letter-spacing: 0.5px; } /* Encabezados más chicos y compactos */
+select, input[type="date"], input[type="text"] { width: 100%; padding: 4px; font-family: 'Teko', sans-serif; font-size: 1.05rem; box-sizing: border-box; }
+
+/* TAMAÑOS MÁXIMOS PARA COLUMNAS LARGAS */
+td:nth-child(5) { max-width: 150px; } /* Cliente */
+td:nth-child(8) { max-width: 250px; } /* Servicio */
 
 /* PESTAÑAS (TABS) */
 .tabs { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
@@ -36,7 +40,7 @@ select, input[type="date"], input[type="text"] { width: 100%; padding: 5px; font
 .spinner-container span { position: absolute; left: 0; width: 32px; height: 6px; background: #2c4766; border-radius: 80px; transform-origin: 200px; transform: rotate(calc(var(--i) * (360deg / 50))); animation: blink 3s linear infinite; animation-delay: calc(var(--i) * (3s / 50)); }
 @keyframes blink { 0% { background: #0ef; } 25% { background: #2c4766; } }
 .login-box-neon { position: absolute; width: 80%; max-width: 300px; z-index: 2; padding: 30px; border-radius: 20px; background: rgba(11, 15, 25, 0.95); text-align: center; }
-.login-box-neon h2 { font-size: 1.6em; color: #0ef; margin-bottom: 20px; }
+.login-box-neon h2 { font-size: 1.6em; color: #0ef; margin-bottom: 20px; font-family: 'Poppins', sans-serif;}
 .input-box-neon { position: relative; margin: 25px 0; }
 .input-box-neon input { width: 100%; height: 45px; background: transparent; border: 2px solid #2c4766; outline: none; border-radius: 40px; font-size: 1.2em; color: #fff; padding: 0 15px; transition: 0.5s ease; text-align: center; font-family: sans-serif; letter-spacing: 5px;}
 .input-box-neon input:focus { border-color: #0ef; }
@@ -45,25 +49,27 @@ select, input[type="date"], input[type="text"] { width: 100%; padding: 5px; font
 .btn-neon { width: 100%; height: 45px; background: #0ef; border: none; outline: none; border-radius: 40px; cursor: pointer; font-size: 1.2em; color: #1f293a; font-weight: 900; font-family: 'Poppins', sans-serif; transition: 0.3s; }
 .btn-neon:hover { box-shadow: 0 0 15px #0ef; }
 
-/* ================== TEMA JARED (MESSI / ARGENTINA) ================== */
+/* ================== TEMA JARED ================== */
 body.theme-jared { background-color: #75AADB; background-image: linear-gradient(0deg, rgba(255,255,255,0.3) 2px, transparent 2px), linear-gradient(90deg, rgba(255,255,255,0.3) 2px, transparent 2px); background-size: 50px 50px; font-family: 'Poppins', sans-serif; }
-.theme-jared h1 { font-size: 4rem; color: #fff; text-shadow: 3px 3px 0 #D4AF37; margin:0; text-align:center;}
-.theme-jared h2 { font-size: 2rem; color: #000; text-align:center; margin-top:0; letter-spacing: 5px;}
+.theme-jared h1 { font-size: 3.5rem; color: #fff; text-shadow: 3px 3px 0 #D4AF37; margin:0; text-align:center;}
+.theme-jared h2 { font-size: 1.5rem; color: #000; text-align:center; margin-top:0; letter-spacing: 5px;}
 .theme-jared table { background: rgba(255, 255, 255, 0.95); }
 .theme-jared th { background: #75AADB; color: #fff; font-family: 'Poppins', sans-serif; border-bottom: 4px solid #D4AF37; }
 .theme-jared td { color: #000; border-bottom: 1px solid #ccc; font-weight:bold;}
 .theme-jared input, .theme-jared select { background: #fff; color: #000; border: 2px solid #75AADB; border-radius: 5px; font-family:'Poppins', sans-serif;}
+.theme-jared .tab-btn.active { background: #75AADB !important; border-color: #fff !important; color:#fff !important; box-shadow: 0 0 15px rgba(255,255,255,0.6);}
 
-/* ================== TEMA EUGENIA (PANTERA ROSA) ================== */
+/* ================== TEMA EUGENIA ================== */
 body.theme-eugenia { background-color: #FFB6C1; background-image: radial-gradient(#FF1493 2px, transparent 2px); background-size: 30px 30px; font-family: 'Poppins', sans-serif; }
-.theme-eugenia h1 { font-size: 4.5rem; color: #FF1493; text-shadow: 2px 2px 0 #fff; margin:0; text-align:center; font-style: italic;}
-.theme-eugenia h2 { font-size: 2rem; color: #fff; text-shadow: 1px 1px 0 #FF1493; text-align:center; margin-top:0;}
+.theme-eugenia h1 { font-size: 3.5rem; color: #FF1493; text-shadow: 2px 2px 0 #fff; margin:0; text-align:center; font-style: italic;}
+.theme-eugenia h2 { font-size: 1.5rem; color: #fff; text-shadow: 1px 1px 0 #FF1493; text-align:center; margin-top:0;}
 .theme-eugenia table { background: rgba(255, 240, 245, 0.95); }
 .theme-eugenia th { background: #FF69B4; color: #fff; font-family: 'Poppins', sans-serif; border-bottom: 4px solid #FF1493; }
 .theme-eugenia td { color: #333; border-bottom: 1px solid #FFB6C1; font-weight:bold;}
 .theme-eugenia input, .theme-eugenia select { background: #fff; color: #333; border: 2px solid #FF69B4; border-radius: 5px; font-family:'Poppins', sans-serif;}
+.theme-eugenia .tab-btn.active { background: #FF1493 !important; border-color: #fff !important; color:#fff !important; box-shadow: 0 0 15px rgba(255,255,255,0.6);}
 
-/* ================== TEMA CITAS (MORADOS Y DISEÑOS) ================== */
+/* ================== TEMA CITAS ================== */
 body.theme-citas { background-color: #E6E6FA; background-image: radial-gradient(#9370DB 2px, transparent 2px); background-size: 30px 30px; font-family: 'Poppins', sans-serif; }
 .theme-citas h1 { font-family: 'Chewy', cursive; font-size: 4.5rem; color: #8A2BE2; text-shadow: 2px 2px 0 #fff; margin:0; text-align:center; letter-spacing: 3px;}
 .theme-citas table { background: rgba(255, 255, 255, 0.95); }
@@ -73,7 +79,7 @@ body.theme-citas { background-color: #E6E6FA; background-image: radial-gradient(
 .theme-citas .tab-btn { background: #fff; border: 2px solid #9370DB; color: #9370DB; border-radius: 20px; clip-path: none; font-family: 'Poppins', sans-serif; font-weight:bold; padding: 8px 30px;}
 .theme-citas .tab-btn.active { background: #8A2BE2 !important; border-color: #8A2BE2 !important; color:#fff !important;}
 
-/* ================== TEMA ADMIN (ALEGRE: BLANCO, AZUL CIELO Y NARANJA) ================== */
+/* ================== TEMA ADMIN ================== */
 body.theme-admin { background-color: #f4f7f6; background-image: none; font-family: 'Poppins', sans-serif; color: #333; border:none; outline:none; }
 .theme-admin h1 { font-family: 'Poppins', sans-serif; font-size: 3.5rem; color: #00BFFF; text-shadow: none; margin:0; text-align:center; font-weight: 900; letter-spacing: 2px;}
 .theme-admin h2 { font-size: 2rem; color: #FF8C00; text-align:center; margin-top:0; font-weight:bold;}
