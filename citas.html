@@ -6,12 +6,14 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <style>
-        :root { var(--table-font-size: 1rem); }
+        :root { --table-font-size: 1rem; }
         .table-container td, .table-container select, .table-container input { font-size: var(--table-font-size) !important; transition: font-size 0.2s ease; }
         .counter-badge { background: #fff; border: 2px solid #8A2BE2; color: #4b0082; padding: 5px 15px; border-radius: 10px; font-family: 'Poppins', sans-serif; font-weight: bold; font-size: 1.1rem; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(138,43,226,0.2); }
         .counter-badge span { background: #8A2BE2; color: #fff; padding: 2px 8px; border-radius: 5px; }
         .btn-zoom { background: #8A2BE2; color: white; border: none; width: 35px; height: 35px; border-radius: 50%; font-size: 1.5rem; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(138,43,226,0.3); transition: transform 0.2s; }
         .btn-zoom:hover { transform: scale(1.1); background: #9370DB;}
+        /* Fila de advertencia (Amarillo/Ámbar suave) para datos incompletos */
+        .row-warning { background-color: rgba(255, 223, 137, 0.4) !important; }
     </style>
 </head>
 <body class="theme-citas">
@@ -20,38 +22,36 @@
 
     <button onclick="location.href='index.html'" class="btn-volver" style="background:#8A2BE2; border:none; box-shadow:0 4px 10px rgba(138,43,226,0.4);">🚪 CERRAR SESIÓN</button>
     
-    <div style="text-align: center; margin-bottom: 20px;">
+    <div style="text-align: center; margin-bottom: 10px;">
         <h1 style="margin-bottom: 5px;">CONTROL DE CITAS</h1>
-        <!-- Botón para desbloquear el panel -->
+        <h3 id="mesActualLabel" style="margin-top: 0; color: #8A2BE2; font-family: 'Poppins', sans-serif;">VISUALIZANDO MES: Cargando...</h3>
         <button id="btnUnlock" style="background:#ff007f; color:#fff; font-family:'Poppins', sans-serif; font-weight:bold; font-size:1.2rem; border:none; padding:10px 20px; cursor:pointer; border-radius:10px; box-shadow: 0 4px 10px rgba(255,0,127,0.4); margin-top:10px;">🔒 DESBLOQUEAR PANEL (SÓLO LECTURA)</button>
     </div>
 
+    <!-- DASHBOARD BI CON KPI DE NO SHOW -->
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; flex-wrap:wrap; gap:15px; background: rgba(255,255,255,0.5); padding: 15px; border-radius: 15px; border: 1px solid #D8BFD8;">
-        <div style="display:flex; gap: 15px;">
-            <div class="counter-badge">📅 CITAS HOY: <span id="countHoy">0</span></div>
+        <div style="display:flex; gap: 15px; flex-wrap: wrap;">
+            <div class="counter-badge">📅 CITAS DEL MES: <span id="countMes">0</span></div>
             <div class="counter-badge">✅ ASISTENCIAS: <span id="countAsis">0</span></div>
             <div class="counter-badge">❌ NO SHOW: <span id="countNo">0</span></div>
+            <div class="counter-badge">📉 KPI NO SHOW: <span id="kpiNoShow" style="background:#4b0082;">0%</span></div>
         </div>
         <div style="display:flex; align-items:center; gap: 10px; background: #fff; padding: 5px 15px; border-radius: 20px; border: 2px solid #8A2BE2;">
-            <span style="color:#4b0082; font-family:'Poppins', sans-serif; font-weight:bold;">🔍 TAMAÑO TEXTO:</span>
+            <span style="color:#4b0082; font-family:'Poppins', sans-serif; font-weight:bold;">🔍 TEXTO:</span>
             <button id="btnZoomOut" class="btn-zoom">-</button>
             <span id="zoomLevel" style="font-family:'Poppins', sans-serif; font-weight:bold; color:#8A2BE2; width: 50px; text-align:center;">100%</span>
             <button id="btnZoomIn" class="btn-zoom">+</button>
         </div>
     </div>
 
-    <!-- BOTONES DE ACCIÓN Y EXCEL (OCULTOS HASTA DESBLOQUEAR) -->
+    <!-- CONTROLES OCULTOS HASTA DESBLOQUEAR -->
     <div id="actionControls" style="display: none; gap: 20px; justify-content: center; align-items: center; margin-bottom: 30px;">
         <button id="btnGarantia" style="background:#BA55D3; color:white; font-family:'Poppins', sans-serif; font-weight:bold; font-size:1.2rem; border:none; padding:15px 30px; cursor:pointer; border-radius:10px; box-shadow: 0 4px 10px rgba(186,85,211,0.4);">+ AGREGAR GARANTÍA</button>
         <button id="btnSinCita" style="background:#9370DB; color:white; font-family:'Poppins', sans-serif; font-weight:bold; font-size:1.2rem; border:none; padding:15px 30px; cursor:pointer; border-radius:10px; box-shadow: 0 4px 10px rgba(147,112,219,0.4);">+ AGREGAR SIN CITA</button>
         
-        <!-- BOTÓN DE CARPETA ANIMADA (UIVERSE) -->
         <div class="container-folder" style="margin-top:0;">
             <div class="folder">
-                <div class="front-side">
-                    <div class="tip"></div>
-                    <div class="cover"></div>
-                </div>
+                <div class="front-side"><div class="tip"></div><div class="cover"></div></div>
                 <div class="back-side cover"></div>
             </div>
             <label class="custom-file-upload">
@@ -98,7 +98,7 @@
             <thead>
                 <tr>
                     <th>Asesor</th><th>Fecha Cita</th><th>Folio</th><th>Cliente</th><th>Vehículo</th><th>Placas</th>
-                    <th>Motivo NO SHOW</th><th>¿Reagendó?</th><th>Fecha Reagendo</th><th>Registro No Show</th>
+                    <th>Motivo NO SHOW</th><th>¿Reagendó?</th><th>Fecha Reagendo</th><th>Registro</th>
                 </tr>
             </thead>
             <tbody id="tbody-noshow"></tbody>
@@ -123,34 +123,28 @@
             document.getElementById('zoomLevel').innerText = Math.round((currentZoom / 1.0) * 100) + '%';
         }
         applyZoom();
-
         document.getElementById('btnZoomIn').addEventListener('click', () => { if(currentZoom < 1.8) { currentZoom += 0.1; localStorage.setItem('tableFontSizeCitas', currentZoom.toFixed(1)); applyZoom(); } });
         document.getElementById('btnZoomOut').addEventListener('click', () => { if(currentZoom > 0.6) { currentZoom -= 0.1; localStorage.setItem('tableFontSizeCitas', currentZoom.toFixed(1)); applyZoom(); } });
 
-        const frases = ["\"Hay un solo jefe: el cliente. Y puede despedir a todos... simplemente gastando su dinero en otra parte.\" – Sam Walton", "\"El propósito de un negocio es crear y mantener un cliente.\" – Peter Drucker"];
+        const frases = ["\"El cliente recuerda más la resolución del problema que el problema mismo.\" – Dan Gingiss", "\"La lealtad del cliente no tiene precio.\" – Jeffrey Gitomer"];
         document.getElementById('quote-box').innerText = frases[Math.floor(Math.random() * frases.length)];
         
         let listaMotivos = [];
-        let isLocked = true; // ESTADO DE BLOQUEO (Lectura por defecto)
+        let isLocked = true; 
         let lastData = {};
 
-        // Lógica para desbloquear
         document.getElementById('btnUnlock').addEventListener('click', () => {
             let pin = prompt("🔐 Ingresa la contraseña de Control de Citas:");
             if(pin === '0520') {
                 isLocked = false;
                 document.getElementById('btnUnlock').style.display = 'none';
                 document.getElementById('actionControls').style.display = 'flex';
-                renderizarCitas(lastData); // Re-renderiza para habilitar inputs
-                alert("🔓 Panel Desbloqueado. Edición Habilitada.");
-            } else if(pin) {
-                alert("❌ Contraseña incorrecta.");
-            }
+                renderizarCitas(lastData);
+            } else if(pin) alert("❌ Contraseña incorrecta.");
         });
 
         onValue(ref(db, 'config_prepiking/motivos'), (snapshot) => {
-            listaMotivos = snapshot.val() || ["Se le hizo tarde", "Confundió el horario", "Canceló la cita"];
-            get(ref(db, 'citas_diarias')).then(snap => renderizarCitas(snap.val() || {}));
+            listaMotivos = snapshot.val() || ["Se le hizo tarde", "Canceló la cita"];
         });
 
         onValue(ref(db, 'citas_diarias'), (snapshot) => {
@@ -158,7 +152,6 @@
             renderizarCitas(lastData);
         });
 
-        // LECTURA DE EXCEL (CARPETA ANIMADA)
         document.getElementById('excelFile').addEventListener('change', function(e) {
             const file = e.target.files[0]; if (!file) return;
             const reader = new FileReader();
@@ -183,8 +176,8 @@
                 get(ref(db, 'citas_diarias')).then(snap => {
                     let dbA = snap.val() || {}; let act = {};
                     for (let f in nReg) if (!dbA[f]) act[f] = nReg[f];
-                    if(Object.keys(act).length > 0) update(ref(db, 'citas_diarias'), act).then(()=>alert("✅ Excel cargado con éxito."));
-                    else alert("⚠️ Todos los folios ya existían.");
+                    if(Object.keys(act).length > 0) update(ref(db, 'citas_diarias'), act).then(()=>alert("✅ Excel cargado."));
+                    else alert("⚠️ Folios ya existentes.");
                 });
             };
             reader.readAsArrayBuffer(file);
@@ -196,17 +189,36 @@
             const tbodyNo = document.getElementById('tbody-noshow');
             tbodyPre.innerHTML = ''; tbodySleep.innerHTML = ''; tbodyNo.innerHTML = '';
             
-            let arr = Object.values(datos).filter(c => !c.oculto);
+            let arrGeneral = Object.values(datos).filter(c => !c.oculto);
+            
+            // FILTRADO POR MES DEL ÚLTIMO EXCEL
             let maxDateStr = "";
-            if (arr.length > 0) {
-                let fSort = arr.map(c => { let p = c.Fecha.split('/'); return { o: c.Fecha, v: parseInt(`${p[2]}${p[1]}${p[0]}`) }; });
-                maxDateStr = fSort.find(f => f.v === Math.max(...fSort.map(x => x.v))).o;
+            let maxMonthYear = "";
+            if (arrGeneral.length > 0) {
+                let fSort = arrGeneral.map(c => { let p = c.Fecha.split('/'); return { o: c.Fecha, v: parseInt(`${p[2]}${p[1]}${p[0]}`) }; });
+                maxDateStr = fSort.find(f => f.v === Math.max(...fSort.map(x => x.v))).o; // "26/09/2026"
+                maxMonthYear = maxDateStr.split('/').slice(1).join('/'); // "09/2026"
             }
 
-            let citasHoy = arr.filter(c => c.Fecha === maxDateStr);
-            document.getElementById('countHoy').innerText = citasHoy.length;
-            document.getElementById('countAsis').innerText = citasHoy.filter(c => c.asistio === 'Sí').length;
-            document.getElementById('countNo').innerText = citasHoy.filter(c => c.asistio === 'No').length;
+            document.getElementById('mesActualLabel').innerText = maxMonthYear ? `VISUALIZANDO MES: ${maxMonthYear}` : 'SIN DATOS';
+
+            // SOLO TRABAJAMOS CON LAS CITAS DEL MES ACTUAL
+            let arr = arrGeneral.filter(c => c.Fecha.endsWith(maxMonthYear));
+
+            // DASHBOARD BI KPI
+            let totalCitasMes = arr.length;
+            let asistenciasMes = arr.filter(c => c.asistio === 'Sí').length;
+            let noShowMes = arr.filter(c => c.asistio === 'No').length;
+            let pctNoShow = totalCitasMes > 0 ? ((noShowMes / totalCitasMes) * 100) : 0;
+            
+            document.getElementById('countMes').innerText = totalCitasMes;
+            document.getElementById('countAsis').innerText = asistenciasMes;
+            document.getElementById('countNo').innerText = noShowMes;
+            
+            let kpiElement = document.getElementById('kpiNoShow');
+            kpiElement.innerText = pctNoShow.toFixed(1) + "%";
+            // Si el KPI supera 5%, se pinta de rojo
+            kpiElement.style.background = pctNoShow > 5 ? '#ff0000' : '#32cd32';
 
             let arrPre = arr.filter(c => c.asistio !== 'No' && c.Fecha === maxDateStr);
             let arrSleeping = arr.filter(c => c.asistio !== 'No' && c.Fecha !== maxDateStr);
@@ -216,7 +228,7 @@
             arrSleeping.sort((a,b) => { let cmp = a.Fecha.split('/').reverse().join('').localeCompare(b.Fecha.split('/').reverse().join('')); if(cmp !== 0) return cmp; return a.Hora.localeCompare(b.Hora); });
             arrNoShow.sort((a,b) => { return parseInt(b.Fecha.split('/').reverse().join('')) - parseInt(a.Fecha.split('/').reverse().join('')); });
 
-            let lockStatus = isLocked ? 'disabled' : ''; // Para Inputs y Selects
+            let lockStatus = isLocked ? 'disabled' : '';
 
             const pintarFilaActiva = (cita, tbodyDestino, isRezago) => {
                 let rowStyle = isRezago ? 'background-color: #D8BFD8; color: #4b0082;' : ''; 
@@ -248,14 +260,32 @@
                 let opts = `<option value="">Selecciona...</option>` + listaMotivos.map(m => `<option value="${m}" ${cita.motivo===m?'selected':''}>${m}</option>`).join('');
                 let btnHtml = isLocked ? '' : `<br><button class="btn-deshacer" data-folio="${cita.Folio}" style="background:transparent; color:#8A2BE2; font-weight:bold; border:none; cursor:pointer;">↩ Deshacer</button>`;
                 
+                // Formateo de fecha resumida
+                let fShowResumida = 'No registrado';
+                if(cita.fechaHoraNoShow) {
+                    let fp = cita.fechaHoraNoShow.split(' ');
+                    if(fp.length > 1) {
+                        let fHora = fp[1].split(':');
+                        fShowResumida = `${fp[0]} ${fHora[0]}:${fHora[1]}`; // dd/mm/aaaa HH:mm
+                    } else { fShowResumida = cita.fechaHoraNoShow; }
+                }
+
+                // ALERTA VISUAL: Si falta Motivo o Reagendo
+                let faltaInfo = !cita.motivo || !cita.reagendo;
+                let classWarning = faltaInfo ? 'class="row-warning"' : '';
+
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td><strong>${nom}</strong>${btnHtml}</td>
-                    <td style="font-weight:bold;">${cita.Fecha}</td><td>${cita.Folio}</td><td>${cita.Cliente}</td><td>${cita.Vehiculo}</td><td>${cita.Placas}</td>
-                    <td><select class="sel-motivo" data-folio="${cita.Folio}" ${lockStatus}>${opts}</select></td>
-                    <td><select class="sel-reagendo" data-folio="${cita.Folio}" ${lockStatus}><option value="">¿Reagendó?</option><option value="Sí" ${cita.reagendo==='Sí'?'selected':''}>Sí</option><option value="No" ${cita.reagendo==='No'?'selected':''}>No</option></select></td>
-                    <td><input type="date" class="inp-fecha" data-folio="${cita.Folio}" value="${cita.fechaReagendo || ''}" ${lockStatus}></td>
-                    <td style="color:#ff007f; font-size:0.9rem; font-weight:bold;">${cita.fechaHoraNoShow || 'No registrado'}</td>
+                    <td ${classWarning}><strong>${nom}</strong>${btnHtml}</td>
+                    <td ${classWarning} style="font-weight:bold;">${cita.Fecha}</td>
+                    <td ${classWarning}>${cita.Folio}</td>
+                    <td ${classWarning}>${cita.Cliente}</td>
+                    <td ${classWarning}>${cita.Vehiculo}</td>
+                    <td ${classWarning}>${cita.Placas}</td>
+                    <td ${classWarning}><select class="sel-motivo" data-folio="${cita.Folio}" ${lockStatus}>${opts}</select></td>
+                    <td ${classWarning}><select class="sel-reagendo" data-folio="${cita.Folio}" ${lockStatus}><option value="">¿Reagendó?</option><option value="Sí" ${cita.reagendo==='Sí'?'selected':''}>Sí</option><option value="No" ${cita.reagendo==='No'?'selected':''}>No</option></select></td>
+                    <td ${classWarning}><input type="date" class="inp-fecha" data-folio="${cita.Folio}" value="${cita.fechaReagendo || ''}" ${lockStatus}></td>
+                    <td ${classWarning} style="color:#ff007f; font-size:0.9rem; font-weight:bold;">${fShowResumida}</td>
                 `;
                 tbodyNo.appendChild(tr);
             });
@@ -263,7 +293,7 @@
         }
 
         function asignarEventos() {
-            if(isLocked) return; // Si está bloqueado no agregamos los eventos de cambio
+            if(isLocked) return; 
             document.querySelectorAll('.btn-deshacer').forEach(el => el.addEventListener('click', (e) => update(ref(db, `citas_diarias/${e.target.dataset.folio}`), { asistio: "", timeAsis: "", fechaHoraNoShow: "" })));
             document.querySelectorAll('.inp-placas').forEach(el => el.addEventListener('change', (e) => update(ref(db, `citas_diarias/${e.target.dataset.folio}`), { Placas: e.target.value.toUpperCase() })));
             document.querySelectorAll('.inp-comentario').forEach(el => el.addEventListener('change', (e) => update(ref(db, `citas_diarias/${e.target.dataset.folio}`), { comentarios: e.target.value })));
