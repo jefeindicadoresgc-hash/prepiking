@@ -7,7 +7,7 @@
 </head>
 <body class="theme-eugenia">
 
-    <!-- FRASE MOTIVACIONAL (Esquina Superior Izquierda) -->
+    <!-- FRASE MOTIVACIONAL -->
     <div id="quote-box" style="position: absolute; top: 15px; left: 20px; max-width: 300px; font-size: 0.95rem; font-style: italic; color: #fff; text-align: left; opacity: 0.9; text-shadow: 2px 2px 4px #FF1493; font-family: 'Poppins', sans-serif; z-index: 1000; line-height: 1.3;"></div>
 
     <button onclick="location.href='index.html'" class="btn-volver" style="border-color:#FF1493; color:#FF1493;">🚪 VOLVER AL MENÚ</button>
@@ -19,7 +19,7 @@
         <button id="btnSinCita" style="background:#FF1493; color:#fff; font-family:'Poppins', sans-serif; font-size:1.2rem; font-weight:bold; border:none; padding:10px 20px; cursor:pointer; border-radius:10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.2s;">+ AGREGAR SIN CITA</button>
     </div>
 
-    <!-- PESTAÑAS (TABS) PARA EUGENIA -->
+    <!-- PESTAÑAS (TABS) -->
     <div class="tabs">
         <button class="tab-btn active" data-tab="prepiking">Citas de Hoy</button>
         <button class="tab-btn" data-tab="sleeping">Sleeping Over</button>
@@ -45,7 +45,7 @@
         </table>
     </div>
 
-    <!-- TABLA SLEEPING OVER -->
+    <!-- TABLA SLEEPING OVER (REZAGO DEL MES) -->
     <div class="table-container" id="tab-sleeping">
         <table>
             <thead>
@@ -104,7 +104,7 @@
             });
         });
 
-        // LÓGICA DE TABLAS (EUGENIA)
+        // LÓGICA DE TABLAS (EUGENIA) CON FILTRO MENSUAL
         onValue(ref(db, 'citas_diarias'), (snapshot) => {
             const tbodyHoy = document.getElementById('tbody-eugenia');
             const tbodySleep = document.getElementById('tbody-sleeping');
@@ -113,19 +113,28 @@
             let datos = snapshot.val() || {};
             let misCitas = Object.values(datos).filter(c => c.Asesor.includes('EUGENIA') && !c.oculto && c.asistio !== 'No');
             
-            let maxDateStr = "";
+            let arrHoy = [];
+            let arrSleep = [];
+
             if (misCitas.length > 0) {
+                // 1. Encontrar la fecha más reciente (El "Hoy" del sistema)
                 let fechasSortables = misCitas.map(c => {
                     let partes = c.Fecha.split('/');
                     return { original: c.Fecha, valor: parseInt(`${partes[2]}${partes[1]}${partes[0]}`) };
                 });
                 let maxValor = Math.max(...fechasSortables.map(f => f.valor));
-                maxDateStr = fechasSortables.find(f => f.valor === maxValor).original;
-            }
+                let maxDateStr = fechasSortables.find(f => f.valor === maxValor).original;
 
-            // Separar Arreglos
-            let arrHoy = misCitas.filter(c => c.Fecha === maxDateStr);
-            let arrSleep = misCitas.filter(c => c.Fecha !== maxDateStr);
+                // 2. Extraer el mes y año de esa fecha (Ej. "09/2026")
+                let maxMonthYear = maxDateStr.split('/').slice(1).join('/');
+
+                // 3. Filtrar para que SOLO existan citas de este mes
+                let citasDelMes = misCitas.filter(c => c.Fecha.endsWith(maxMonthYear));
+
+                // 4. Separar entre Hoy y Rezago (Sleeping Over)
+                arrHoy = citasDelMes.filter(c => c.Fecha === maxDateStr);
+                arrSleep = citasDelMes.filter(c => c.Fecha !== maxDateStr);
+            }
 
             arrHoy.sort((a, b) => a.Hora.localeCompare(b.Hora));
             arrSleep.sort((a, b) => {
@@ -169,7 +178,7 @@
                         </select>
                     </td>
                     <td><input type="text" class="inp-comentario" data-folio="${cita.Folio}" value="${cita.comentarios || ''}" placeholder="Escribe aquí..." style="${isRezago ? 'border-color:#aaa;' : ''}"></td>
-                    <td><button class="btn-entregar" data-folio="${cita.Folio}" style="background:#00ff00; border:1px solid #00aa00; padding:8px; border-radius:5px; font-weight:bold; cursor:pointer; color:#000;">✔️ ENTREGAR</button></td>
+                    <td><button class="btn-entregar" data-folio="${cita.Folio}" style="background:#00ff00; border:1px solid #00aa00; padding:8px; border-radius:5px; font-weight:bold; cursor:pointer; color:#000;">✔️️ ENTREGAR</button></td>
                 `;
                 tbodyDestino.appendChild(tr);
             };
