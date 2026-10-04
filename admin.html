@@ -5,6 +5,9 @@
     <title>Super Admin</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <style>
+        .month-selector { padding: 8px 15px; border-radius: 10px; border: 2px solid #00BFFF; font-family: 'Poppins', sans-serif; font-size: 1.1rem; color: #333; outline: none;}
+    </style>
 </head>
 <body class="theme-admin">
 
@@ -13,7 +16,12 @@
     <h1>SUPER ADMIN</h1>
     <h2>PANEL DE EDICIÓN Y CONTROL TOTAL</h2>
 
-    <div style="display:flex; justify-content:center; gap:15px; margin-bottom:20px;">
+    <div style="display:flex; justify-content:center; align-items:center; gap:15px; margin-bottom:20px; background:#fff; padding:15px; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.05);">
+        <label style="font-family:'Poppins', sans-serif; font-weight:bold; color:#FF8C00; font-size:1.2rem;">📅 FILTRAR MES:</label>
+        <input type="month" id="monthFilter" class="month-selector">
+        
+        <div style="width:2px; height:30px; background:#ddd; margin: 0 10px;"></div>
+
         <button class="btn-mac" id="btnConfigMotivos" style="background:#FF8C00; color:#fff;">⚙️ MOTIVOS NO SHOW</button>
         <button class="btn-mac" id="btnLimpiarBase" style="background:#ff4757; color:#fff;">⚠️ REINICIAR DÍA</button>
     </div>
@@ -24,7 +32,6 @@
         <button class="tab-btn" data-tab="entregados">ENTREGADOS</button>
     </div>
 
-    <!-- Pestaña Prepiking con CAMPOS EDITABLES -->
     <div class="table-container active" id="tab-prepiking">
         <table>
             <thead>
@@ -86,16 +93,59 @@
         const db = getDatabase(app);
 
         let listaMotivos = [];
+        let rawDataCitas = {};
+        let rawDataEntregados = {};
+
         onValue(ref(db, 'config_prepiking/motivos'), (snapshot) => { listaMotivos = snapshot.val() || ["Se le hizo tarde", "Canceló la cita"]; });
 
-        // RENDERIZADO ADMIN (CON CAMPOS EDITABLES EN PREPIKING)
+        // LECTURA PRINCIPAL
         onValue(ref(db, 'citas_diarias'), (snap) => {
-            const tbPre = document.getElementById('tbody-prepiking'); const tbNo = document.getElementById('tbody-noshow');
+            rawDataCitas = snap.val() || {};
+            procesarTablas();
+        });
+
+        onValue(ref(db, 'historial_completado'), (snap) => {
+            rawDataEntregados = snap.val() || {};
+            procesarEntregados();
+        });
+
+        // DETECTAR CAMBIO EN EL FILTRO DE MES
+        document.getElementById('monthFilter').addEventListener('change', () => {
+            procesarTablas();
+            procesarEntregados();
+        });
+
+        function procesarTablas() {
+            const tbPre = document.getElementById('tbody-prepiking'); 
+            const tbNo = document.getElementById('tbody-noshow');
             tbPre.innerHTML = ''; tbNo.innerHTML = '';
-            let arr = Object.values(snap.val() || {}).filter(c => !c.oculto);
-            arr.forEach(c => {
+            
+            let arrGeneral = Object.values(rawDataCitas).filter(c => !c.oculto);
+            if(arrGeneral.length === 0) return;
+
+            // Determinar qué mes mostrar
+            let selectorMes = document.getElementById('monthFilter').value; // Formato "YYYY-MM"
+            let targetSuffix = "";
+
+            if (!selectorMes) {
+                // Si está vacío, buscar el mes del último Excel cargado
+                let fSort = arrGeneral.map(c => { let p = c.Fecha.split('/'); return { o: c.Fecha, v: parseInt(`${p[2]}${p[1]}${p[0]}`) }; });
+                let maxDateStr = fSort.find(f => f.v === Math.max(...fSort.map(x => x.v))).o; // "26/09/2026"
+                let partes = maxDateStr.split('/');
+                targetSuffix = `${partes[1]}/${partes[2]}`; // "09/2026"
                 
-                // Selector para cambiar de Asesor (SIN la opción de dejarlo vacío)
+                // Actualizar el selector visualmente sin disparar evento
+                document.getElementById('monthFilter').value = `${partes[2]}-${partes[1]}`;
+            } else {
+                // Si el admin eligió un mes manual (Ej. "2026-09")
+                let partes = selectorMes.split('-');
+                targetSuffix = `${partes[1]}/${partes[0]}`; // "09/2026"
+            }
+
+            // Filtrar arreglo por el mes seleccionado
+            let arr = arrGeneral.filter(c => c.Fecha.endsWith(targetSuffix));
+
+            arr.forEach(c => {
                 let esJared = c.Asesor.includes('JARED') && !c.Asesor.includes('GARANTÍA');
                 let esEugenia = c.Asesor.includes('EUGENIA') && !c.Asesor.includes('GARANTÍA');
                 let esGarJared = c.Asesor.includes('JARED') && c.Asesor.includes('GARANTÍA');
@@ -111,13 +161,20 @@
                 `;
 
                 if(c.asistio==='No') {
+                    let fShowResumida = 'No registrado';
+                    if(c.fechaHoraNoShow) {
+                        let fp = c.fechaHoraNoShow.split(' ');
+                        if(fp.length > 1) { let fHora = fp[1].split(':'); fShowResumida = `${fp[0]} ${fHora[0]}:${fHora[1]}`; } 
+                        else { fShowResumida = c.fechaHoraNoShow; }
+                    }
+
                     let tr = document.createElement('tr');
                     tr.innerHTML = `<td>${selectAsesor}</td><td>${c.Folio}</td>
                     <td><input type="text" class="admin-edit-field" data-f="${c.Folio}" data-field="Cliente" value="${c.Cliente}"></td>
                     <td><input type="text" class="admin-edit-field" data-f="${c.Folio}" data-field="Vehiculo" value="${c.Vehiculo}"></td>
                     <td><input type="text" class="admin-edit-field" data-f="${c.Folio}" data-field="Placas" value="${c.Placas}" style="text-align:center;"></td>
                     <td>${c.motivo||'-'}</td>
-                    <td style="color:#ff4757; font-weight:bold;">${c.fechaHoraNoShow || 'No registrado'}</td>
+                    <td style="color:#ff4757; font-weight:bold; font-size:0.9rem;">${fShowResumida}</td>
                     <td style="text-align:center;"><button class="btn-eliminar" data-f="${c.Folio}" style="background:transparent;border:none;font-size:1.5rem;cursor:pointer;">❌</button></td>`;
                     tbNo.appendChild(tr);
                 } else {
@@ -136,27 +193,30 @@
                 }
             });
 
-            // LOGICA PARA QUE LOS CAMBIOS SE GUARDEN EN VIVO EN FIREBASE
             document.querySelectorAll('.admin-edit-field').forEach(input => {
                 input.addEventListener('change', (e) => {
-                    let f = e.target.dataset.f;
-                    let campo = e.target.dataset.field;
-                    let val = e.target.value.toUpperCase();
-                    let updateObj = {};
-                    updateObj[campo] = val;
-                    update(ref(db, `citas_diarias/${f}`), updateObj);
+                    let f = e.target.dataset.f; let campo = e.target.dataset.field; let val = e.target.value.toUpperCase();
+                    let updateObj = {}; updateObj[campo] = val; update(ref(db, `citas_diarias/${f}`), updateObj);
                 });
             });
 
             document.querySelectorAll('.btn-eliminar').forEach(b => b.addEventListener('click', e => {
                 if(confirm("¿Borrar cita permanentemente?")) set(ref(db, `citas_diarias/${e.target.dataset.f}`), null);
             }));
-        });
+        }
 
-        onValue(ref(db, 'historial_completado'), (snap) => {
+        function procesarEntregados() {
             const tbEnt = document.getElementById('tbody-entregados'); tbEnt.innerHTML = '';
-            let arr = Object.values(snap.val() || {}).sort((a,b)=>b.timestampEntrega-a.timestampEntrega);
-            arr.forEach(c => {
+            let arrGeneral = Object.values(rawDataEntregados).sort((a,b)=>b.timestampEntrega-a.timestampEntrega);
+            
+            let selectorMes = document.getElementById('monthFilter').value;
+            if(selectorMes) {
+                let partes = selectorMes.split('-');
+                let targetSuffix = `${partes[1]}/${partes[0]}`; // "09/2026"
+                arrGeneral = arrGeneral.filter(c => c.Fecha.endsWith(targetSuffix));
+            }
+
+            arrGeneral.forEach(c => {
                 let tr = document.createElement('tr');
                 tr.innerHTML = `<td><strong>${c.Asesor}</strong></td><td>${c.Folio}</td><td>${c.Cliente}</td><td>${c.Vehiculo}</td><td style="font-weight:bold;">${c.Placas}</td><td style="color:#00BFFF; font-weight:bold;">${c.calif.toUpperCase()}</td>
                 <td>${new Date(c.timestampEntrega).toLocaleString()}</td>
@@ -166,9 +226,8 @@
             document.querySelectorAll('.btn-del-ent').forEach(b => b.addEventListener('click', e => {
                 if(confirm("¿Borrar del historial permanentemente?")) set(ref(db, `historial_completado/${e.target.dataset.id}`), null);
             }));
-        });
+        }
 
-        // TABS
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.tab-btn, .table-container').forEach(el => el.classList.remove('active'));
@@ -176,21 +235,17 @@
             });
         });
 
-        // LIMPIAR DIA
         document.getElementById('btnLimpiarBase').addEventListener('click', () => {
             if(confirm("⚠️ ¿Deseas limpiar el día? (Los No Show y Taller están protegidos)")) {
                 get(ref(db, 'citas_diarias')).then(snap => {
-                    let datos = snap.val() || {}; let datosRetenidos = {};
-                    for(let f in datos) { if(datos[f].asistio==='No' || datos[f].estado_taller) datosRetenidos[f] = datos[f]; }
-                    set(ref(db, 'citas_diarias'), datosRetenidos).then(() => alert("Día reiniciado."));
+                    let datos = snap.val() || {}; let dRet = {};
+                    for(let f in datos) { if(datos[f].asistio==='No' || datos[f].estado_taller) dRet[f] = datos[f]; }
+                    set(ref(db, 'citas_diarias'), dRet).then(() => alert("Día reiniciado."));
                 });
             }
         });
 
-        // CONFIG MOTIVOS
-        document.getElementById('btnConfigMotivos').addEventListener('click', () => {
-            document.getElementById('modalMotivos').style.display = 'flex'; renderMotivosAdmin();
-        });
+        document.getElementById('btnConfigMotivos').addEventListener('click', () => { document.getElementById('modalMotivos').style.display = 'flex'; renderMotivosAdmin(); });
         document.getElementById('btnCerrarMotivos').addEventListener('click', () => document.getElementById('modalMotivos').style.display = 'none');
         document.getElementById('btnGuardarNuevoMotivo').addEventListener('click', () => {
             let n = document.getElementById('nuevoMotivoInput').value.trim();
@@ -200,12 +255,12 @@
             const cont = document.getElementById('listaMotivosContainer'); cont.innerHTML = '';
             listaMotivos.forEach((m, i) => {
                 let div = document.createElement('div'); div.style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #ccc; padding:10px;";
-                div.innerHTML = `<span style="font-weight:500; font-family:'Poppins', sans-serif;">${m}</span><button class="btn-mac" style="background:#ff4757; color:white;" onclick="eliminarMotivo(${i})">X</button>`;
+                div.innerHTML = `<span style="font-weight:500;">${m}</span><button class="btn-mac" style="background:#ff4757; color:white;" onclick="eliminarMotivo(${i})">X</button>`;
                 cont.appendChild(div);
             });
         }
         window.eliminarMotivo = function(i) {
-            if(confirm("¿Eliminar motivo?")) { listaMotivos.splice(i, 1); set(ref(db, 'config_prepiking/motivos'), listaMotivos).then(()=>renderMotivosAdmin()); }
+            if(confirm("¿Eliminar?")) { listaMotivos.splice(i, 1); set(ref(db, 'config_prepiking/motivos'), listaMotivos).then(()=>renderMotivosAdmin()); }
         };
     </script>
 </body>
