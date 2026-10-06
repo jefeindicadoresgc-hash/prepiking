@@ -264,7 +264,7 @@
             container.appendChild(div);
         }
 
-        // LECTURA PRINCIPAL DE CITAS Y ALARMA
+        // LECTURA PRINCIPAL DE CITAS Y ALARMA (CON FILTRO SALVAVIDAS)
         onValue(ref(db, 'citas_diarias'), (snapshot) => {
             const tbodyHoy = document.getElementById('tbody-jared');
             const tbodySleep = document.getElementById('tbody-sleeping');
@@ -273,7 +273,8 @@
             
             let datos = snapshot.val() || {};
             
-            let datosFull = Object.values(datos);
+            // 🛡️ FILTRO CONTRA DATOS CORRUPTOS (VACIOS SIN FECHA)
+            let datosFull = Object.values(datos).filter(c => c && c.Fecha);
             if (datosFull.length === 0) return;
 
             let fSort = datosFull.map(c => { let p = c.Fecha.split('/'); return { o: c.Fecha, v: parseInt(`${p[2]}${p[1]}${p[0]}`) }; });
@@ -366,11 +367,12 @@
             asignarEventos();
         });
 
+        // LECTURA DE VENTAS PERDIDAS (CON FILTRO SALVAVIDAS)
         onValue(ref(db, 'historial_completado'), (snap) => {
             const tbodyVentas = document.getElementById('tbody-ventasperdidas');
             tbodyVentas.innerHTML = '';
             let datos = snap.val() || {};
-            let ventasPerdidas = Object.values(datos).filter(c => c.Asesor.includes('JARED') && c.venta_perdida_array && c.venta_perdida_array.length > 0);
+            let ventasPerdidas = Object.values(datos).filter(c => c && c.Fecha && c.Asesor.includes('JARED') && c.venta_perdida_array && c.venta_perdida_array.length > 0);
             ventasPerdidas.sort((a,b) => b.timestampEntrega - a.timestampEntrega);
 
             ventasPerdidas.forEach(cita => {
@@ -396,7 +398,7 @@
                     let folio = e.target.dataset.folio;
                     get(ref(db, `citas_diarias/${folio}`)).then(snap => {
                         let data = snap.val(); 
-                        if(!data.calif) { alert("⚠️ Primero califica el estado de la unidad en la tabla antes de entregar."); return; }
+                        if(!data.calif) { alert("⚠️ Califica el estado de la unidad en la tabla antes de entregar."); return; }
                         folioActivo = folio; 
                         document.getElementById('cotizoAdicional').value = ""; document.getElementById('autorizoAlgo').value = "";
                         document.getElementById('listaFilasRechazo').innerHTML = ""; window.toggleRechazo(); 
@@ -462,7 +464,7 @@
                         if(m && !listaAprendizajeMotivos.includes(m)) nuevosMotivos.push(m);
                     });
                     
-                    if (flagError) return alert("⚠️️ Llena todos los campos de las piezas rechazadas.");
+                    if (flagError) return alert("⚠️ Llena todos los campos de las piezas rechazadas.");
                 }
             }
 

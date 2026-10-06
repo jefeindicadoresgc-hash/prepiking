@@ -12,11 +12,14 @@
         .counter-badge span { background: #8A2BE2; color: #fff; padding: 2px 8px; border-radius: 5px; font-size:0.95rem;}
         .btn-zoom { background: #8A2BE2; color: white; border: none; width: 35px; height: 35px; border-radius: 50%; font-size: 1.5rem; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(138,43,226,0.3); transition: transform 0.2s; }
         .btn-zoom:hover { transform: scale(1.1); background: #9370DB;}
+        
+        /* Alerta para datos de No Show incompletos */
         .row-warning { background-color: rgba(255, 223, 137, 0.6) !important; }
     </style>
 </head>
 <body class="theme-citas">
 
+    <!-- REQUISITO SVG PARA EL DISEÑO GOOEY -->
     <svg class="gooey-svg-filter">
       <defs>
         <filter id="enhanced-goo">
@@ -35,6 +38,7 @@
         <h1 style="margin-bottom: 5px;">CONTROL DE CITAS</h1>
         <h3 id="mesActualLabel" style="margin-top: 0; color: #8A2BE2; font-family: 'Poppins', sans-serif;">VISUALIZANDO MES: Cargando...</h3>
         
+        <!-- DISEÑO GOOEY DE DESBLOQUEO -->
         <div class="search-orb-container" id="unlockContainer">
           <div class="gooey-background-layer"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div><div class="blob-bridge"></div></div>
           <div class="input-overlay">
@@ -79,12 +83,14 @@
                 <button id="btnZoomIn" class="btn-zoom">+</button>
             </div>
         </div>
-
     </div>
 
+    <!-- CONTROLES OCULTOS HASTA DESBLOQUEAR -->
     <div id="actionControls" style="display: none; gap: 20px; justify-content: center; align-items: center; margin-bottom: 30px;">
         <button id="btnGarantia" style="background:#BA55D3; color:white; font-family:'Poppins', sans-serif; font-weight:bold; font-size:1.2rem; border:none; padding:15px 30px; cursor:pointer; border-radius:10px; box-shadow: 0 4px 10px rgba(186,85,211,0.4);">+ AGREGAR GARANTÍA</button>
         <button id="btnSinCita" style="background:#9370DB; color:white; font-family:'Poppins', sans-serif; font-weight:bold; font-size:1.2rem; border:none; padding:15px 30px; cursor:pointer; border-radius:10px; box-shadow: 0 4px 10px rgba(147,112,219,0.4);">+ AGREGAR SIN CITA</button>
+        
+        <!-- CARPETA ANIMADA EXCEL -->
         <div class="container-folder" style="margin-top:0;">
             <div class="folder"><div class="front-side"><div class="tip"></div><div class="cover"></div></div><div class="back-side cover"></div></div>
             <label class="custom-file-upload"><input type="file" id="excelFile" accept=".xls,.xlsx">SUBIR EXCEL</label>
@@ -147,6 +153,7 @@
         });
         const db = getDatabase(app);
 
+        // --- SISTEMA DE ZOOM ---
         let currentZoom = parseFloat(localStorage.getItem('tableFontSizeCitas')) || 1.0;
         function applyZoom() {
             document.documentElement.style.setProperty('--table-font-size', currentZoom + 'rem');
@@ -163,6 +170,7 @@
         let isLocked = true; 
         let lastData = {};
 
+        // LÓGICA DE DESBLOQUEO GOOEY AUTOMÁTICO
         document.getElementById('citasPinInput').addEventListener('input', (e) => {
             if(e.target.value === '0520') {
                 isLocked = false;
@@ -182,6 +190,7 @@
             renderizarCitas(lastData);
         });
 
+        // LECTURA DE EXCEL
         document.getElementById('excelFile').addEventListener('change', function(e) {
             const file = e.target.files[0]; if (!file) return;
             const reader = new FileReader();
@@ -199,7 +208,7 @@
                             Hora: (jsonDatos[i][2] instanceof Date ? jsonDatos[i][2].toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : jsonDatos[i][2]),
                             Asesor: jsonDatos[i][10]||'Sin Asesor', Cliente: jsonDatos[i][8]||'', Vehiculo: jsonDatos[i][3]||'',
                             VIN: jsonDatos[i][7]||'', Placas: jsonDatos[i][6]||'',
-                            Servicio: (jsonDatos[i+1]?.[4]||'') + ' ' + (jsonDatos[i+1]?.[5]||''), asistio: "", calif: "", oculto: false
+                            Servicio: (jsonDatos[i+1]?.[4]||'') + ' ' + (jsonDatos[i+1]?.[5]||''), asistio: "", calif: "", oculto: false, tipo_ingreso: 'Cita Normal'
                         };
                     }
                 }
@@ -218,15 +227,19 @@
             reader.readAsArrayBuffer(file);
         });
 
+        // MOTOR PRINCIPAL RENDERIZADOR
         function renderizarCitas(datos) {
             const tbodyPre = document.getElementById('tbody-prepiking');
             const tbodySleep = document.getElementById('tbody-sleeping');
             const tbodyNo = document.getElementById('tbody-noshow');
             tbodyPre.innerHTML = ''; tbodySleep.innerHTML = ''; tbodyNo.innerHTML = '';
             
-            // TODOS los registros de la base (Ocultos/Entregados incluidos) para KPIs precisos
-            let arrFull = Object.values(datos);
-            if (arrFull.length === 0) return;
+            // 🛡️ FILTRO SALVAVIDAS: Ignora cualquier registro dañado que no tenga Fecha
+            let arrFull = Object.values(datos).filter(c => c && c.Fecha);
+            if (arrFull.length === 0) {
+                document.getElementById('mesActualLabel').innerText = 'SIN DATOS';
+                return;
+            }
 
             let fSort = arrFull.map(c => { let p = c.Fecha.split('/'); return { o: c.Fecha, v: parseInt(`${p[2]}${p[1]}${p[0]}`) }; });
             let maxDateStr = fSort.find(f => f.v === Math.max(...fSort.map(x => x.v))).o; 
@@ -234,7 +247,7 @@
 
             document.getElementById('mesActualLabel').innerText = maxMonthYear ? `VISUALIZANDO MES: ${maxMonthYear}` : 'SIN DATOS';
 
-            // CÁLCULO DE DASHBOARDS (Con datos Full)
+            // CÁLCULO DE DASHBOARDS (Con datos Full para ser exactos)
             let arrMesFull = arrFull.filter(c => c.Fecha.endsWith(maxMonthYear));
             let arrHoyFull = arrFull.filter(c => c.Fecha === maxDateStr);
 
@@ -301,6 +314,7 @@
                     else { fShowResumida = cita.fechaHoraNoShow; }
                 }
 
+                // ALERTA VISUAL: Filtro de datos incompletos en el No Show (Ámbar)
                 let faltaInfo = !cita.motivo || !cita.reagendo || (cita.reagendo === 'Sí' && !cita.fechaReagendo);
                 let classWarning = faltaInfo ? 'class="row-warning"' : '';
 
@@ -362,7 +376,10 @@
                 let f = document.getElementById(`${rowId}-folio`).value.trim(); let h = document.getElementById(`${rowId}-hora`).value.trim(); let ase = document.getElementById(`${rowId}-asesor`).value;
                 if(!ase) return alert("⚠️ Selecciona el Asesor."); if(!f) return alert("⚠️ Folio obligatorio.");
                 let fp = document.getElementById(`${rowId}-fecha`).value.split('-');
-                let nCita = { Folio: f, Fecha: `${fp[2]}/${fp[1]}/${fp[0]}`, Asesor: ase, Hora: h, Cliente: document.getElementById(`${rowId}-cliente`).value.toUpperCase(), Vehiculo: document.getElementById(`${rowId}-vehiculo`).value.toUpperCase(), VIN: document.getElementById(`${rowId}-vin`).value.toUpperCase() || 'S/V', Placas: document.getElementById(`${rowId}-placas`).value.toUpperCase() || 'S/P', Servicio: document.getElementById(`${rowId}-servicio`).value.toUpperCase(), asistio: "", timeAsis: "", calif: "", comentarios: "", oculto: false };
+                
+                // INYECCIÓN DE LA ETIQUETA INVISIBLE PARA CONTEO EXACTO
+                let nCita = { Folio: f, Fecha: `${fp[2]}/${fp[1]}/${fp[0]}`, Asesor: ase, Hora: h, Cliente: document.getElementById(`${rowId}-cliente`).value.toUpperCase(), Vehiculo: document.getElementById(`${rowId}-vehiculo`).value.toUpperCase(), VIN: document.getElementById(`${rowId}-vin`).value.toUpperCase() || 'S/V', Placas: document.getElementById(`${rowId}-placas`).value.toUpperCase() || 'S/P', Servicio: document.getElementById(`${rowId}-servicio`).value.toUpperCase(), asistio: "", timeAsis: "", calif: "", comentarios: "", oculto: false, tipo_ingreso: 'Sin Cita' };
+                
                 update(ref(db, `citas_diarias/${f}`), nCita).then(() => document.getElementById(rowId).remove());
             });
         }
@@ -370,4 +387,4 @@
         document.getElementById('btnGarantia').addEventListener('click', () => inyectarFilaRapida(true));
     </script>
 </body>
-</html>d
+</html>

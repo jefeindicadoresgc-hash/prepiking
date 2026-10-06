@@ -264,7 +264,7 @@
             container.appendChild(div);
         }
 
-        // LECTURA PRINCIPAL DE CITAS Y ALARMA
+        // LECTURA PRINCIPAL DE CITAS Y ALARMA (CON FILTRO SALVAVIDAS)
         onValue(ref(db, 'citas_diarias'), (snapshot) => {
             const tbodyHoy = document.getElementById('tbody-eugenia');
             const tbodySleep = document.getElementById('tbody-sleeping');
@@ -272,7 +272,9 @@
             tbodyHoy.innerHTML = ''; tbodySleep.innerHTML = ''; tbodyComp.innerHTML = '';
             
             let datos = snapshot.val() || {};
-            let datosFull = Object.values(datos);
+            
+            // 🛡️ FILTRO CONTRA DATOS CORRUPTOS (VACIOS SIN FECHA)
+            let datosFull = Object.values(datos).filter(c => c && c.Fecha);
             if (datosFull.length === 0) return;
 
             let fSort = datosFull.map(c => { let p = c.Fecha.split('/'); return { o: c.Fecha, v: parseInt(`${p[2]}${p[1]}${p[0]}`) }; });
@@ -365,11 +367,12 @@
             asignarEventos();
         });
 
+        // LECTURA DE VENTAS PERDIDAS (CON FILTRO SALVAVIDAS)
         onValue(ref(db, 'historial_completado'), (snap) => {
             const tbodyVentas = document.getElementById('tbody-ventasperdidas');
             tbodyVentas.innerHTML = '';
             let datos = snap.val() || {};
-            let ventasPerdidas = Object.values(datos).filter(c => c.Asesor.includes('EUGENIA') && c.venta_perdida_array && c.venta_perdida_array.length > 0);
+            let ventasPerdidas = Object.values(datos).filter(c => c && c.Fecha && c.Asesor.includes('EUGENIA') && c.venta_perdida_array && c.venta_perdida_array.length > 0);
             ventasPerdidas.sort((a,b) => b.timestampEntrega - a.timestampEntrega);
 
             ventasPerdidas.forEach(cita => {
