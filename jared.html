@@ -4,12 +4,15 @@
     <meta charset="UTF-8">
     <title>Jared - Servicio</title>
     <link rel="stylesheet" href="style.css">
+    
+    <!-- AQUÍ ESTÁ EL CABLE MÁGICO QUE CONECTA CON EL ARCHIVO DE MIGRACIÓN -->
+    <script type="module" src="migracion.js"></script>
+
     <style>
         .top-left-panel { position: absolute; top: 15px; left: 20px; max-width: 300px; z-index: 1000; }
         .quote-text { font-size: 0.95rem; font-style: italic; color: #fff; text-align: left; opacity: 0.9; text-shadow: 2px 2px 4px #000; font-family: 'Poppins', sans-serif; line-height: 1.3; margin-bottom: 8px; }
         .digital-clock { font-family: 'Teko', sans-serif; font-size: 1.8rem; font-weight: bold; color: #D4AF37; text-shadow: 2px 2px 4px #000; letter-spacing: 2px; text-align: center; }
         
-        /* ALARMA MOLESTA PARA SEGUIMIENTO */
         @keyframes blink-molesto {
             0% { background-color: #ff0000; color: #fff; transform: scale(1); box-shadow: 0 0 20px #ff0000; }
             50% { background-color: #ffff00; color: #000; transform: scale(1.05); box-shadow: 0 0 30px #ffff00; }
@@ -17,7 +20,6 @@
         }
         .alerta-seguimiento { display: none; animation: blink-molesto 0.6s infinite; font-family: 'Poppins', sans-serif; font-weight: 900; font-size: 1.2rem; padding: 10px; border-radius: 10px; text-align: center; margin-top: 10px; border: 3px solid #000; text-transform: uppercase; }
 
-        /* DASHBOARD HORIZONTAL (NUEVO DISEÑO EN CUADROS) */
         .dashboard-horizontal { display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; flex-wrap: wrap; }
         .dash-card { background: rgba(0, 0, 0, 0.85); border-radius: 12px; padding: 15px 25px; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.3); min-width: 100px; display: flex; flex-direction: column; align-items: center; border-bottom: 4px solid; transition: transform 0.2s; backdrop-filter: blur(5px); }
         .dash-card:hover { transform: translateY(-5px); }
@@ -29,7 +31,6 @@
         .dash-asis { border-color: #00ff00; } .dash-asis .dash-num { color: #00ff00; }
         .dash-noshow { border-color: #ff4757; } .dash-noshow .dash-num { color: #ff4757; }
 
-        /* Estilos de Modales */
         .cierre-input { width: 100%; padding: 8px; margin-top: 5px; margin-bottom: 15px; font-family: 'Poppins', sans-serif; font-size: 1rem; border-radius: 5px; border: 1px solid #75AADB; box-sizing: border-box; }
         .cierre-label { font-weight: bold; color: #D4AF37; font-family: 'Poppins', sans-serif; font-size: 0.95rem; }
         .fila-dinamica { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
@@ -44,11 +45,9 @@
 </head>
 <body class="theme-jared">
 
-    <!-- PANEL SUPERIOR IZQUIERDO -->
     <div class="top-left-panel">
         <div id="quote-box" class="quote-text"></div>
         <div id="digital-clock" class="digital-clock">00:00:00</div>
-        <!-- LUZ DE ALARMA MOLESTA -->
         <div id="alertaFaltaSeguimiento" class="alerta-seguimiento">⚠️ ¡FALTA SEGUIMIENTO EN SLEEPING OVER!</div>
     </div>
 
@@ -61,31 +60,14 @@
         <button id="btnSinCita" style="background:#D4AF37; color:#000; font-family:'Poppins', sans-serif; font-size:1.2rem; font-weight:bold; border:none; padding:10px 20px; cursor:pointer; border-radius:10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.2s;">+ AGREGAR SIN CITA</button>
     </div>
 
-    <!-- NUEVO DASHBOARD HORIZONTAL -->
     <div class="dashboard-horizontal" id="panel-metricas">
-        <div class="dash-card dash-normal">
-            <span class="dash-title">NORMALES</span>
-            <span class="dash-num" id="m-normales">0</span>
-        </div>
-        <div class="dash-card dash-garantia">
-            <span class="dash-title">GARANTÍAS</span>
-            <span class="dash-num" id="m-garantias">0</span>
-        </div>
-        <div class="dash-card dash-sincita">
-            <span class="dash-title">SIN CITA</span>
-            <span class="dash-num" id="m-sincita">0</span>
-        </div>
-        <div class="dash-card dash-asis">
-            <span class="dash-title">ASISTENCIAS</span>
-            <span class="dash-num" id="m-asis">0</span>
-        </div>
-        <div class="dash-card dash-noshow">
-            <span class="dash-title">NO SHOW</span>
-            <span class="dash-num" id="m-noshow">0</span>
-        </div>
+        <div class="dash-card dash-normal"><span class="dash-title">NORMALES</span><span class="dash-num" id="m-normales">0</span></div>
+        <div class="dash-card dash-garantia"><span class="dash-title">GARANTÍAS</span><span class="dash-num" id="m-garantias">0</span></div>
+        <div class="dash-card dash-sincita"><span class="dash-title">SIN CITA</span><span class="dash-num" id="m-sincita">0</span></div>
+        <div class="dash-card dash-asis"><span class="dash-title">ASISTENCIAS</span><span class="dash-num" id="m-asis">0</span></div>
+        <div class="dash-card dash-noshow"><span class="dash-title">NO SHOW</span><span class="dash-num" id="m-noshow">0</span></div>
     </div>
 
-    <!-- PESTAÑAS -->
     <div class="tabs">
         <button class="tab-btn active" data-tab="prepiking">Citas de Hoy</button>
         <button class="tab-btn" data-tab="companero">Ver Compañero</button>
@@ -94,16 +76,14 @@
     </div>
 
     <div class="ko-splash" id="ko-anim">¡GOLAZO!</div>
-
-    <div id="gifOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:9999; align-items:center; justify-content:center;">
-        <img id="tardyGif" src="" style="max-width: 80%; max-height: 80%; border: 5px solid red; border-radius: 15px; box-shadow: 0 0 30px red;">
-    </div>
+    <div id="gifOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:9999; align-items:center; justify-content:center;"><img id="tardyGif" src="" style="max-width: 80%; max-height: 80%; border: 5px solid red; border-radius: 15px; box-shadow: 0 0 30px red;"></div>
 
     <div class="table-container active" id="tab-prepiking">
         <table>
             <thead>
                 <tr>
-                    <th>Asesor</th><th>Fecha</th><th>Hora</th><th>Folio</th>
+                    <!-- NUEVA COLUMNA -->
+                    <th>Cotización</th><th>Asesor</th><th>Fecha</th><th>Hora</th><th>Folio</th>
                     <th>Cliente</th><th>Vehículo</th><th>Placas</th><th>Servicio</th>
                     <th>Asistencia</th><th>Calificación</th><th>Comentarios</th><th>Acción</th>
                 </tr>
@@ -116,7 +96,8 @@
         <table>
             <thead>
                 <tr>
-                    <th>Asesora</th><th>Fecha</th><th>Hora</th><th>Folio</th>
+                    <!-- NUEVA COLUMNA -->
+                    <th>Cotización</th><th>Asesora</th><th>Fecha</th><th>Hora</th><th>Folio</th>
                     <th>Cliente</th><th>Vehículo</th><th>Placas</th><th>Servicio</th>
                     <th>Asistencia</th><th>Calificación</th><th>Comentarios</th>
                 </tr>
@@ -129,7 +110,8 @@
         <table>
             <thead>
                 <tr>
-                    <th>Asesor</th><th>Fecha</th><th>Hora</th><th>Folio</th>
+                    <!-- NUEVA COLUMNA -->
+                    <th>Cotización</th><th>Asesor</th><th>Fecha</th><th>Hora</th><th>Folio</th>
                     <th>Cliente</th><th>Vehículo</th><th>Placas</th><th>Servicio</th>
                     <th>Asistencia</th><th>Calificación</th><th>Comentarios</th><th>Acción</th>
                 </tr>
@@ -198,9 +180,7 @@
         </div>
     </div>
 
-    <!-- DICCIONARIOS INTELIGENTES -->
-    <datalist id="dictPiezasJared"></datalist>
-    <datalist id="dictMotivosJared"></datalist>
+    <datalist id="dictPiezasJared"></datalist><datalist id="dictMotivosJared"></datalist>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
@@ -218,11 +198,9 @@
         let listaAprendizajePiezas = []; let listaAprendizajeMotivos = [];
 
         function actualizarReloj() {
-            const ahora = new Date();
-            document.getElementById('digital-clock').innerText = ahora.toLocaleTimeString('es-MX', {hour: '2-digit', minute:'2-digit', second:'2-digit', hour12: true});
+            const ahora = new Date(); document.getElementById('digital-clock').innerText = ahora.toLocaleTimeString('es-MX', {hour: '2-digit', minute:'2-digit', second:'2-digit', hour12: true});
         }
         setInterval(actualizarReloj, 1000); actualizarReloj();
-
         document.getElementById('quote-box').innerText = "\"Un seguimiento a tiempo salva una venta mañana.\"";
 
         document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -232,48 +210,26 @@
             });
         });
 
-        onValue(ref(db, 'config_jared/dict_piezas'), (snap) => {
-            listaAprendizajePiezas = snap.val() || ["Frenos", "Llantas", "Batería"];
-            document.getElementById('dictPiezasJared').innerHTML = listaAprendizajePiezas.map(p => `<option value="${p}">`).join('');
-        });
-        onValue(ref(db, 'config_jared/dict_motivos'), (snap) => {
-            listaAprendizajeMotivos = snap.val() || ["Falta de presupuesto", "Falta de tiempo", "Lo consultará"];
-            document.getElementById('dictMotivosJared').innerHTML = listaAprendizajeMotivos.map(m => `<option value="${m}">`).join('');
-        });
+        onValue(ref(db, 'config_jared/dict_piezas'), (snap) => { listaAprendizajePiezas = snap.val() || ["Frenos", "Llantas", "Batería"]; document.getElementById('dictPiezasJared').innerHTML = listaAprendizajePiezas.map(p => `<option value="${p}">`).join(''); });
+        onValue(ref(db, 'config_jared/dict_motivos'), (snap) => { listaAprendizajeMotivos = snap.val() || ["Falta de presupuesto", "Falta de tiempo", "Lo consultará"]; document.getElementById('dictMotivosJared').innerHTML = listaAprendizajeMotivos.map(m => `<option value="${m}">`).join(''); });
 
         window.toggleRechazo = function() {
             let cotizo = document.getElementById('cotizoAdicional').value;
-            let divAuto = document.getElementById('preguntaAutorizo');
-            let divRechazo = document.getElementById('camposRechazo');
-            if (cotizo === 'Sí') {
-                divAuto.style.display = 'block';
-                let autorizo = document.getElementById('autorizoAlgo').value;
-                if (autorizo === 'No') {
-                    divRechazo.style.display = 'block';
-                    if(document.getElementById('listaFilasRechazo').children.length === 0) agregarFilaRechazo();
-                } else divRechazo.style.display = 'none';
-            } else {
-                divAuto.style.display = 'none'; divRechazo.style.display = 'none'; document.getElementById('autorizoAlgo').value = "";
-            }
+            let divAuto = document.getElementById('preguntaAutorizo'); let divRechazo = document.getElementById('camposRechazo');
+            if (cotizo === 'Sí') { divAuto.style.display = 'block'; let autorizo = document.getElementById('autorizoAlgo').value; if (autorizo === 'No') { divRechazo.style.display = 'block'; if(document.getElementById('listaFilasRechazo').children.length === 0) agregarFilaRechazo(); } else divRechazo.style.display = 'none'; } else { divAuto.style.display = 'none'; divRechazo.style.display = 'none'; document.getElementById('autorizoAlgo').value = ""; }
         }
 
         window.agregarFilaRechazo = function() {
-            let container = document.getElementById('listaFilasRechazo');
-            let div = document.createElement('div'); div.className = 'fila-dinamica';
+            let container = document.getElementById('listaFilasRechazo'); let div = document.createElement('div'); div.className = 'fila-dinamica';
             div.innerHTML = `<input type="text" class="cierre-input desc-pieza" list="dictPiezasJared" placeholder="Pieza o Servicio..."><input type="text" class="cierre-input desc-motivo" list="dictMotivosJared" placeholder="Motivo..."><button type="button" style="background:#ff4757; color:#fff; border:none; padding:8px 12px; border-radius:5px; cursor:pointer;" onclick="this.parentElement.remove()">X</button>`;
             container.appendChild(div);
         }
 
-        // LECTURA PRINCIPAL DE CITAS Y ALARMA (CON FILTRO SALVAVIDAS)
         onValue(ref(db, 'citas_diarias'), (snapshot) => {
-            const tbodyHoy = document.getElementById('tbody-jared');
-            const tbodySleep = document.getElementById('tbody-sleeping');
-            const tbodyComp = document.getElementById('tbody-companero');
+            const tbodyHoy = document.getElementById('tbody-jared'); const tbodySleep = document.getElementById('tbody-sleeping'); const tbodyComp = document.getElementById('tbody-companero');
             tbodyHoy.innerHTML = ''; tbodySleep.innerHTML = ''; tbodyComp.innerHTML = '';
             
             let datos = snapshot.val() || {};
-            
-            // 🛡️ FILTRO CONTRA DATOS CORRUPTOS (VACIOS SIN FECHA)
             let datosFull = Object.values(datos).filter(c => c && c.Fecha);
             if (datosFull.length === 0) return;
 
@@ -281,46 +237,27 @@
             let maxDateStr = fSort.find(f => f.v === Math.max(...fSort.map(x => x.v))).o;
             let maxMonthYear = maxDateStr.split('/').slice(1).join('/');
 
-            // DASHBOARD HORIZONTAL EN VIVO 
             let misCitasCompletasHoy = datosFull.filter(c => c.Asesor.includes('JARED') && c.Fecha === maxDateStr);
             let gHoy = 0, scHoy = 0, normHoy = 0, asisHoy = 0, noHoy = 0;
+            misCitasCompletasHoy.forEach(c => { if (c.Asesor.includes('GARANTÍA')) gHoy++; else if (c.tipo_ingreso === 'Sin Cita') scHoy++; else normHoy++; if (c.asistio === 'Sí') asisHoy++; if (c.asistio === 'No') noHoy++; });
+            document.getElementById('m-normales').innerText = normHoy; document.getElementById('m-garantias').innerText = gHoy; document.getElementById('m-sincita').innerText = scHoy; document.getElementById('m-asis').innerText = asisHoy; document.getElementById('m-noshow').innerText = noHoy;
 
-            misCitasCompletasHoy.forEach(c => {
-                if (c.Asesor.includes('GARANTÍA')) gHoy++;
-                else if (c.tipo_ingreso === 'Sin Cita') scHoy++;
-                else normHoy++;
-
-                if (c.asistio === 'Sí') asisHoy++;
-                if (c.asistio === 'No') noHoy++;
-            });
-
-            document.getElementById('m-normales').innerText = normHoy;
-            document.getElementById('m-garantias').innerText = gHoy;
-            document.getElementById('m-sincita').innerText = scHoy;
-            document.getElementById('m-asis').innerText = asisHoy;
-            document.getElementById('m-noshow').innerText = noHoy;
-
-            // FILTRADO PARA TABLAS
             let citasActivas = datosFull.filter(c => !c.oculto && c.asistio !== 'No');
             let misCitasActivas = citasActivas.filter(c => c.Asesor.includes('JARED'));
             let arrHoy = misCitasActivas.filter(c => c.Fecha === maxDateStr);
             let arrSleep = misCitasActivas.filter(c => c.Fecha !== maxDateStr);
             let citasCompanero = citasActivas.filter(c => c.Asesor.includes('EUGENIA') && c.Fecha === maxDateStr);
 
-            // LOGICA DE ALARMA
-            let requiereAlarma = arrSleep.some(c => {
-                if (!c.ultimo_seguimiento_ts) return true; 
-                return (Date.now() - c.ultimo_seguimiento_ts) > 86400000; 
-            });
+            let requiereAlarma = arrSleep.some(c => { if (!c.ultimo_seguimiento_ts) return true; return (Date.now() - c.ultimo_seguimiento_ts) > 86400000; });
             document.getElementById('alertaFaltaSeguimiento').style.display = requiereAlarma ? 'block' : 'none';
 
-            arrHoy.sort((a, b) => a.Hora.localeCompare(b.Hora));
-            arrSleep.sort((a, b) => { let cmp = a.Fecha.split('/').reverse().join('').localeCompare(b.Fecha.split('/').reverse().join('')); if(cmp !== 0) return cmp; return a.Hora.localeCompare(b.Hora); });
-            citasCompanero.sort((a, b) => a.Hora.localeCompare(b.Hora));
+            arrHoy.sort((a, b) => a.Hora.localeCompare(b.Hora)); arrSleep.sort((a, b) => { let cmp = a.Fecha.split('/').reverse().join('').localeCompare(b.Fecha.split('/').reverse().join('')); if(cmp !== 0) return cmp; return a.Hora.localeCompare(b.Hora); }); citasCompanero.sort((a, b) => a.Hora.localeCompare(b.Hora));
 
             arrHoy.forEach(cita => {
+                let btnCotiza = `<button class="btn-cotizacion" style="background:#002b5e; color:white; border:none; padding:6px 12px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:0.8rem;" onclick="window.abrirPresupuesto('${cita.VIN || 'S/V'}', this)">📄 Ver Presupuesto</button>`;
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
+                    <td style="text-align:center;">${btnCotiza}</td>
                     <td><strong>${cita.Asesor.includes('GARANTÍA') ? '🌟 GARANTÍA' : 'LUIS JARED'}</strong></td>
                     <td>${cita.Fecha}</td><td style="color:#D4AF37; font-weight:bold;">${cita.Hora}</td><td style="color:#666; font-weight:bold;">${cita.Folio}</td>
                     <td>${cita.Cliente}</td><td style="color:#75AADB; font-weight:bold;">${cita.Vehiculo}</td>
@@ -336,8 +273,10 @@
 
             arrSleep.forEach(cita => {
                 let statusAlarma = (!cita.ultimo_seguimiento_ts || (Date.now() - cita.ultimo_seguimiento_ts) > 86400000) ? 'box-shadow: 0 0 10px red;' : '';
+                let btnCotiza = `<button class="btn-cotizacion" style="background:#002b5e; color:white; border:none; padding:6px 12px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:0.8rem;" onclick="window.abrirPresupuesto('${cita.VIN || 'S/V'}', this)">📄 Ver Presupuesto</button>`;
                 let tr = document.createElement('tr'); tr.style = "background-color: #d3d3d3; color: #333;";
                 tr.innerHTML = `
+                    <td style="text-align:center;">${btnCotiza}</td>
                     <td><strong>${cita.Asesor.includes('GARANTÍA') ? '🌟 GARANTÍA' : 'LUIS JARED'}</strong></td>
                     <td>${cita.Fecha}</td><td style="color:#555; font-weight:bold;">${cita.Hora}</td><td style="color:#555; font-weight:bold;">${cita.Folio}</td>
                     <td>${cita.Cliente}</td><td style="color:#004aad; font-weight:bold;">${cita.Vehiculo}</td>
@@ -352,8 +291,10 @@
             });
 
             citasCompanero.forEach(cita => {
+                let btnCotiza = `<button class="btn-cotizacion" style="background:#002b5e; color:white; border:none; padding:6px 12px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:0.8rem;" onclick="window.abrirPresupuesto('${cita.VIN || 'S/V'}', this)">📄 Ver Presupuesto</button>`;
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
+                    <td style="text-align:center;">${btnCotiza}</td>
                     <td style="color:#FF1493;"><strong>${cita.Asesor.includes('GARANTÍA') ? '💖 GARANTÍA' : 'EUGENIA NARCIA'}</strong></td>
                     <td>${cita.Fecha}</td><td style="color:#FF1493; font-weight:bold;">${cita.Hora}</td><td style="color:#888; font-weight:bold;">${cita.Folio}</td>
                     <td>${cita.Cliente}</td><td style="color:#FF69B4; font-weight:bold;">${cita.Vehiculo}</td>
@@ -367,14 +308,11 @@
             asignarEventos();
         });
 
-        // LECTURA DE VENTAS PERDIDAS (CON FILTRO SALVAVIDAS)
         onValue(ref(db, 'historial_completado'), (snap) => {
-            const tbodyVentas = document.getElementById('tbody-ventasperdidas');
-            tbodyVentas.innerHTML = '';
+            const tbodyVentas = document.getElementById('tbody-ventasperdidas'); tbodyVentas.innerHTML = '';
             let datos = snap.val() || {};
             let ventasPerdidas = Object.values(datos).filter(c => c && c.Fecha && c.Asesor.includes('JARED') && c.venta_perdida_array && c.venta_perdida_array.length > 0);
             ventasPerdidas.sort((a,b) => b.timestampEntrega - a.timestampEntrega);
-
             ventasPerdidas.forEach(cita => {
                 let htmlRechazos = cita.venta_perdida_array.map(r => `• <strong style="color:#ff4757;">${r.pieza}</strong> <i>(${r.motivo})</i>`).join('<br>');
                 let tr = document.createElement('tr');
@@ -398,11 +336,8 @@
                     let folio = e.target.dataset.folio;
                     get(ref(db, `citas_diarias/${folio}`)).then(snap => {
                         let data = snap.val(); 
-                        if(!data.calif) { alert("⚠️ Califica el estado de la unidad en la tabla antes de entregar."); return; }
-                        folioActivo = folio; 
-                        document.getElementById('cotizoAdicional').value = ""; document.getElementById('autorizoAlgo').value = "";
-                        document.getElementById('listaFilasRechazo').innerHTML = ""; window.toggleRechazo(); 
-                        document.getElementById('modalEntregar').style.display = 'flex';
+                        if(!data.calif) { alert("⚠️ Primero califica el estado de la unidad en la tabla antes de entregar."); return; }
+                        folioActivo = folio; document.getElementById('cotizoAdicional').value = ""; document.getElementById('autorizoAlgo').value = ""; document.getElementById('listaFilasRechazo').innerHTML = ""; window.toggleRechazo(); document.getElementById('modalEntregar').style.display = 'flex';
                     });
                 });
             });
@@ -411,73 +346,38 @@
                 btn.addEventListener('click', (e) => {
                     folioActivo = e.target.dataset.folio;
                     get(ref(db, `citas_diarias/${folioActivo}`)).then(snap => {
-                        let data = snap.val();
-                        let cajon = document.getElementById('historialBitacora');
-                        cajon.innerHTML = "";
-                        if(data.bitacora_seguimiento) {
-                            let logs = Object.values(data.bitacora_seguimiento).sort((a,b) => b.ts - a.ts);
-                            logs.forEach(lg => { cajon.innerHTML += `<div class="bitacora-item"><div class="bitacora-fecha">${lg.fechaStr}</div><div>${lg.comentario}</div></div>`; });
-                        } else { cajon.innerHTML = "<i style='color:#888;'>No hay seguimientos registrados.</i>"; }
-                        document.getElementById('nuevoSeguimientoTexto').value = "";
-                        document.getElementById('modalSeguimiento').style.display = 'flex';
+                        let data = snap.val(); let cajon = document.getElementById('historialBitacora'); cajon.innerHTML = "";
+                        if(data.bitacora_seguimiento) { let logs = Object.values(data.bitacora_seguimiento).sort((a,b) => b.ts - a.ts); logs.forEach(lg => { cajon.innerHTML += `<div class="bitacora-item"><div class="bitacora-fecha">${lg.fechaStr}</div><div>${lg.comentario}</div></div>`; }); } else { cajon.innerHTML = "<i style='color:#888;'>No hay seguimientos registrados.</i>"; }
+                        document.getElementById('nuevoSeguimientoTexto').value = ""; document.getElementById('modalSeguimiento').style.display = 'flex';
                     });
                 });
             });
         }
 
         document.getElementById('btnSaveSeguimiento').addEventListener('click', () => {
-            let texto = document.getElementById('nuevoSeguimientoTexto').value.trim();
-            if(!texto) return alert("⚠️ Escribe un comentario de seguimiento.");
-            if(folioActivo) {
-                let ts = Date.now();
-                let log = { ts: ts, fechaStr: new Date().toLocaleString('es-MX'), comentario: texto };
-                update(ref(db, `citas_diarias/${folioActivo}/bitacora_seguimiento/${ts}`), log).then(() => {
-                    update(ref(db, `citas_diarias/${folioActivo}`), { ultimo_seguimiento_ts: ts }).then(() => {
-                        document.getElementById('modalSeguimiento').style.display = 'none'; folioActivo = null;
-                    });
-                });
-            }
+            let texto = document.getElementById('nuevoSeguimientoTexto').value.trim(); if(!texto) return alert("⚠️ Escribe un comentario de seguimiento.");
+            if(folioActivo) { let ts = Date.now(); let log = { ts: ts, fechaStr: new Date().toLocaleString('es-MX'), comentario: texto }; update(ref(db, `citas_diarias/${folioActivo}/bitacora_seguimiento/${ts}`), log).then(() => { update(ref(db, `citas_diarias/${folioActivo}`), { ultimo_seguimiento_ts: ts }).then(() => { document.getElementById('modalSeguimiento').style.display = 'none'; folioActivo = null; }); }); }
         });
         document.getElementById('btnCancelSeguimiento').addEventListener('click', () => { document.getElementById('modalSeguimiento').style.display = 'none'; folioActivo = null; });
 
         document.getElementById('btnConfirmEntregar').addEventListener('click', () => {
-            let cotizo = document.getElementById('cotizoAdicional').value;
-            if (!cotizo) return alert("⚠️ Requisito obligatorio: Debes indicar si hubo cotización adicional.");
-            
+            let cotizo = document.getElementById('cotizoAdicional').value; if (!cotizo) return alert("⚠️ Requisito obligatorio: Debes indicar si hubo cotización adicional.");
             let arrRechazos = []; let flagError = false; let nuevosMotivos = []; let nuevasPiezas = [];
-
             if (cotizo === 'Sí') {
-                let autorizo = document.getElementById('autorizoAlgo').value;
-                if (!autorizo) return alert("⚠️ Indica si el cliente autorizó o no la cotización.");
-                
+                let autorizo = document.getElementById('autorizoAlgo').value; if (!autorizo) return alert("⚠️ Indica si el cliente autorizó o no la cotización.");
                 if (autorizo === 'No') {
-                    let filas = document.querySelectorAll('#listaFilasRechazo .fila-dinamica');
-                    if (filas.length === 0) return alert("⚠️ Agrega al menos una pieza rechazada.");
-                    
-                    filas.forEach(f => {
-                        let p = f.querySelector('.desc-pieza').value.trim();
-                        let m = f.querySelector('.desc-motivo').value.trim();
-                        if (!p || !m) flagError = true;
-                        arrRechazos.push({ pieza: p, motivo: m });
-                        
-                        if(p && !listaAprendizajePiezas.includes(p)) nuevasPiezas.push(p);
-                        if(m && !listaAprendizajeMotivos.includes(m)) nuevosMotivos.push(m);
-                    });
-                    
+                    let filas = document.querySelectorAll('#listaFilasRechazo .fila-dinamica'); if (filas.length === 0) return alert("⚠️ Agrega al menos una pieza rechazada.");
+                    filas.forEach(f => { let p = f.querySelector('.desc-pieza').value.trim(); let m = f.querySelector('.desc-motivo').value.trim(); if (!p || !m) flagError = true; arrRechazos.push({ pieza: p, motivo: m }); if(p && !listaAprendizajePiezas.includes(p)) nuevasPiezas.push(p); if(m && !listaAprendizajeMotivos.includes(m)) nuevosMotivos.push(m); });
                     if (flagError) return alert("⚠️ Llena todos los campos de las piezas rechazadas.");
                 }
             }
-
             if(folioActivo) {
                 get(ref(db, `citas_diarias/${folioActivo}`)).then(snap => { 
-                    let data = snap.val(); data.timestampEntrega = Date.now(); 
-                    data.venta_perdida_array = arrRechazos; 
-
+                    let data = snap.val(); data.timestampEntrega = Date.now(); data.venta_perdida_array = arrRechazos; 
                     set(ref(db, `historial_completado/${folioActivo}_${data.timestampEntrega}`), data).then(() => { 
                         update(ref(db, `citas_diarias/${folioActivo}`), { oculto: true }); 
                         if(nuevasPiezas.length > 0) set(ref(db, 'config_jared/dict_piezas'), [...listaAprendizajePiezas, ...nuevasPiezas]);
                         if(nuevosMotivos.length > 0) set(ref(db, 'config_jared/dict_motivos'), [...listaAprendizajeMotivos, ...nuevosMotivos]);
-
                         folioActivo = null; document.getElementById('modalEntregar').style.display = 'none';
                     }); 
                 });
@@ -492,6 +392,7 @@
             let tr = document.createElement('tr'); tr.id = rowId; tr.style.background = 'rgba(212, 175, 55, 0.3)'; 
             let hoyHora = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); let hoyFecha = new Date().toISOString().split('T')[0];
             tr.innerHTML = `
+                <td style="text-align:center; vertical-align:middle;">-</td>
                 <td><strong style="color:#000;">LUIS JARED</strong></td>
                 <td><input type="date" id="${rowId}-fecha" value="${hoyFecha}" style="border:1px solid #000;"></td>
                 <td><input type="text" id="${rowId}-hora" placeholder="HH:MM" maxlength="5" value="${hoyHora}" oninput="let v=this.value.replace(/[^0-9]/g,''); if(v.length>2) v=v.slice(0,2)+':'+v.slice(2); this.value=v.slice(0,5);" style="border:1px solid #000; text-align:center;"></td>
